@@ -1,0 +1,51 @@
+.plugin-measure.popup {
+    p {
+        margin: 0 0 10px 0;
+        display: flex;
+        align-items: center;
+        font-size: 12px;
+    }
+
+    .error.long {
+        overflow: scroll;
+        display: block;
+        max-height: 200px;
+    }
+
+    a.export-measurements {
+        display: block;
+        margin-top: 12px;
+    }
+
+    .base-control select,
+    .base-control input[type="number"],
+    p input[type="checkbox"] {
+        font-size: 12px;
+        padding: 2px 4px;
+        height: auto;
+        width: auto;
+    }
+
+    .base-control select,
+    .base-control input[type="number"] {
+        flex-grow: 1;
+        max-width: 92px;
+    }
+
+    p input[type="checkbox"] {
+        width: 14px;
+        height: 14px;
+        margin-left: 4px;
+        cursor: pointer;
+    }
+
+    p:last-child {
+        justify-content: flex-start;
+        gap: 4px;
+    }
+
+    p:last-child input[type="checkbox"] {
+        margin-left: 0;
+        margin-right: 4px;
+    }
+}
