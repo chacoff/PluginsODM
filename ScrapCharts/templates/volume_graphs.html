@@ -1,0 +1,224 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<script src="./Chart.min.js"></script>
+
+<h2>{% trans 'Volume reports' %}</h2>
+<br />
+
+<select id="flightsDropdown" onchange="updateVolumeGraph()">
+    <option value="">Select a  day of flight</option>
+    {% for flight in flights %}
+        <option value="{{ flight }}">{{ flight }}</option>
+    {% endfor %}
+</select>
+<br /> <br />
+
+<p id="pilesInfo">Showing default: {{ flights.0 }}.<br />Found: {{ n_piles }} piles.</p>
+<br />
+
+<div class="row text-center">
+    
+    <div class="col-md-4 col-sm-12">
+        <div style="width: 80%; margin-left: 10%;">
+            <canvas id="chartCanvas" width="260" height="320" style="margin-bottom: 12px;"></canvas>
+        </div>
+
+        <div>
+            <button class="btn btn-default" onclick="changeChartType('bar')">Bar</button>
+            <button class="btn btn-default" onclick="changeChartType('line')">Line</button>
+            <button class="btn btn-default" onclick="changeChartType('doughnut')">Donut</button>
+            <button class="btn btn-default" onclick="changeChartType('pie')">Pie</button>
+        </div>
+
+    </div>
+
+    <div class="col-md-4 col-sm-12">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover table-bordered compact-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th scope="col">{% trans 'Pile' %}</th>
+                        <th scope="col">{% trans 'Drone Volume [m³]' %}</th>
+                        <th scope="col">{% trans 'Updated at' %}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for x, y, z in xy_pairs %}
+                    <tr>
+                        <td>{{ x }}</td>
+                        <td>{{ y }}</td>
+                        <td>{{ z }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    
+    </div>
+
+</div>
+
+<button class="btn btn-primary" onclick="exportToCSV()"><i class="fa fa-file-csv"></i> {% trans "Export to CSV" %}</button>
+
+<style>
+    /* Custom CSS to make table compact */
+    .compact-table th, .compact-table td {
+        padding: 1px 1px !important;
+        margin: 0 !important;
+    }
+    .compact-table tr {
+        line-height: 1.0 !important;
+    }
+</style>
+
+<script>
+	const modern_colors = [
+		"rgb(255, 99, 132)",    // Coral Pink
+		"rgb(255, 87, 87)",     // Bright Red
+		"rgb(255, 134, 159)",   // Soft Pink
+		"rgb(219, 68, 88)",     // Deep Rose
+        "rgb(255, 206, 86)",    // Bright Yellow
+		"rgb(250, 176, 5)",     // Golden Yellow
+		"rgb(255, 159, 64)",    // Orange
+		"rgb(245, 124, 0)",     // Deep Orange
+        "rgb(54, 162, 235)",    // Bright Blue'
+		"rgb(36, 116, 204)",    // Royal Blue
+		"rgb(116, 185, 255)",   // Sky Blue
+        "rgb(75, 192, 192)",    // Turquoise
+		"rgb(75, 192, 140)",    // Mint
+		"rgb(47, 193, 140)",    // Emerald
+		"rgb(111, 207, 151)",   // Spring Green
+		"rgb(39, 174, 96)",     // Forest Green
+		"rgb(153, 102, 255)",   // Bright Purple
+		"rgb(142, 68, 173)",    // Deep Purple
+		"rgb(155, 89, 182)",    // Lavender
+        "rgb(201, 203, 207)",   // Cool Gray
+		"rgb(103, 112, 120)",   // Slate Gray
+		"rgb(87, 75, 144)",     // Deep Indigo
+		"rgb(91, 60, 17)",      // Brown
+		"rgb(66, 66, 66)",      // Charcoal
+		"rgb(45, 52, 54)"       // Almost Black
+	];
+
+    let chartInstance;
+    let x_values = [{% for x in x_values %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
+    let y_values = [{% for y in y_values %}{{ y }}{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
+    let updated_at_values = [{% for z in updated_at_values%}"{{ z }}"{% if not forloop.last %}, {% endif %}{% endfor %}]; // python variables getting global in js
+
+    function initChart(type) {
+        const ctx = document.getElementById('chartCanvas').getContext('2d');
+
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: type,
+            data: {
+                labels: x_values,  // [{% for x in x_values %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+                datasets: [{
+                    label: '{{ label }}',
+                    data: y_values,  // [{% for y in y_values %}{{ y }}{% if not forloop.last %}, {% endif %}{% endfor %}],
+                    backgroundColor: modern_colors,
+                    borderColor: 'rgba(215, 212, 211, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                plugins: {
+                    tooltip: {
+                        enabled: true,
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            stepSize: 250
+                        },
+                    }
+                }
+            }
+        });
+    }
+
+    function changeChartType(newType) {
+        initChart(newType);
+    }
+
+    initChart('bar');
+
+    function updateVolumeGraph() {
+        const selectedFlight = document.getElementById('flightsDropdown').value;
+
+        if (selectedFlight) {
+            fetch(`/plugins/ScrapCharts/get_flight_data?flightDay=${selectedFlight}`)
+                .then(response => response.json())
+                .then(data => {
+                    x_values = data.x_values;
+                    y_values = data.y_values;
+                    updated_at_values = data.updated_at_values;
+
+                    chartInstance.data.labels = x_values;
+                    chartInstance.data.datasets[0].data = y_values;
+                    chartInstance.update();
+
+                    updateTable(x_values, y_values, updated_at_values);
+
+                    const pilesInfo = document.getElementById("pilesInfo");
+                    pilesInfo.innerHTML = `Showing flight: ${selectedFlight}.<br />Found: ${x_values.length} piles.`;
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+    }
+
+    function updateTable(xValues, yValues, updateValues) {
+        const tableBody = document.querySelector('table tbody');
+        tableBody.innerHTML = '';  // Clear
+
+        xValues.forEach((pile, index) => {
+            const row = document.createElement('tr');
+
+            const pileCell = document.createElement('td');
+            pileCell.textContent = pile;
+            row.appendChild(pileCell);
+
+            const volumeCell = document.createElement('td');
+            volumeCell.textContent = yValues[index];
+            row.appendChild(volumeCell);
+
+            const updateCell = document.createElement('td');
+            updateCell.textContent = updateValues[index];
+            row.appendChild(updateCell);
+
+            tableBody.appendChild(row);
+        });
+    }
+
+    function exportToCSV() {
+        const selectedFlight = document.getElementById('flightsDropdown').value;
+
+        // Create CSV content
+        let csvContent = "FlightDay,Pile,Volume,UpdatedAt\n";  // Headers
+
+        for (let i = 0; i < x_values.length; i++) {
+            csvContent += `${selectedFlight},${x_values[i]},${y_values[i]},${updated_at_values[i]}\n`;  // Data rows
+        }
+
+        // Create a Blob from the CSV string
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        // Create a link element to trigger the download
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'data.csv';  // Default filename for download
+
+        // Trigger click event to start the download
+        link.click();
+    }
+	
+</script>
+{% endblock %}
