@@ -92,36 +92,14 @@ export default class App{
           Utils.saveAs(JSON.stringify(geoJSON, null, 4), "measurements.geojson")
         });
 
-        map.on('measurestart', (e) => {
-          // Prompt for title before measurement starts
-          const title = prompt("Enter a title for this measurement:", "Measurement");
-          this.iTitle = _(title || 'Measurement Object');
-
-          measure.options.labels.areaMeasurement = this.iTitle;
-
-          // const randomColor = getRandomColor();
-
-          // Update the style of existing layers (if necessary)
-          // map.on('measure:drawstart', function (drawEvent) {
-          //   drawEvent.layer.setStyle({
-          //       color: randomColor,
-          //       fillColor: randomColor,
-          //       fillOpacity: 0.5
-          //   });
-          // });
-
-          // Apply new style to any existing layers (if needed)
-          // map.eachLayer(function (layer) {
-          //   if (layer instanceof L.Polygon) {
-          //       layer.setStyle({
-          //           color: randomColor,
-          //           fillColor: randomColor,
-          //           fillOpacity: 0.5
-          //       });
-          //   }
-          // });
-
-        });
+        // map.on('measurestart', (e) => {
+        //   // Prompt for title before measurement starts
+        //   const title = prompt("Enter a title for this measurement:", "Measurement");
+        //   this.iTitle = _(title || 'Measurement Object');
+        //
+        //   measure.options.labels.areaMeasurement = this.iTitle;
+        //
+        // });
 
         map.on('measurepopupshown', ({popupContainer, model, resultFeature}) => {
             // Only modify area popup, length popup is fine as default
