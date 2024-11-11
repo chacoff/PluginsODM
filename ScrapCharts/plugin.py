@@ -1,5 +1,6 @@
 from datetime import datetime
 import pandas as pd
+from sqlalchemy import create_engine
 import numpy as np
 import psycopg2
 
@@ -54,18 +55,15 @@ class Plugin(PluginBase):
 
 def get_data_from_db(specific_date=None):
 
-    conn_params = {
-        "dbname": "waste_management",
-        "user": "postgres",
-        "password": "API",
-        "host": "host.docker.internal",  # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
-        "port": "5432"
-    }
+    # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
+    db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
 
-    connection = psycopg2.connect(**conn_params)
+    engine = create_engine(db_url)
+
     query = "SELECT * FROM SCRAP_BLV;"
-    df = pd.read_sql(query, connection)
-    connection.close()
+    df = pd.read_sql(query, engine)
+
+    engine.dispose()
 
     flight_days = get_all_flights(df)
 
@@ -89,21 +87,3 @@ def get_all_flights(df: pd.DataFrame):
     df['flightday'] = pd.to_datetime(df['flightday'])
     date_strings = df['flightday'].dt.strftime('%Y-%m-%d').unique().tolist()
     return date_strings
-
-
-# ----------------------
-#
-#
-# ODBC 17 not supported in ubuntu 21.04
-# https://learn.microsoft.com/en-us/sql/connect/odbc/linux-mac/installing-the-microsoft-odbc-driver-for-sql-server?view=sql-server-ver16&tabs=ubuntu18-install%2Cubuntu17-install%2Cdebian8-install%2Credhat7-13-install%2Crhel7-offline
-#
-# connection_string = (
-# r"Driver={ODBC Driver 17 for SQL Server};"
-# r"Server=\\.\pipe\LOCALDB#C27096BB\tsql\query;"
-# r"Database=scraps;"
-# r"Trusted_Connection=yes;"
-# )
-# conn = pyodbc.connect(connection_string)
-# query = "SELECT * FROM dbo.BLV"
-# df = pd.read_sql(query, conn)
-# conn.close()
