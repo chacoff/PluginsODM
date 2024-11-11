@@ -220,6 +220,7 @@ export default class MeasurePopup extends React.Component {
     ];
 
     return (<div className="plugin-measure popup">
+        <p>{_("Name:")}<input type="text" className="form-control" /></p>
         {featureType == "Polygon" && <p>{_("Perimeter:")} {this.props.model.lengthDisplay}</p>}
         {featureType == "Polygon" && <p>{_("Area:")} {this.props.model.areaDisplay}</p>}
         {featureType == "Polygon" && volume === null && !error && <p>{_("Volume:")} <i>{_("computing…")}</i> <i className="fa fa-cog fa-spin fa-fw" /></p>}
