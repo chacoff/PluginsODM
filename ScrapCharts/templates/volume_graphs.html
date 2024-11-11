@@ -8,19 +8,32 @@
 <h2>{% trans 'Volume reports' %}</h2>
 <br />
 
-<select id="flightsDropdown" onchange="updateVolumeGraph()">
-    <option value="">Select a  day of flight</option>
-    {% for flight in flights %}
-        <option value="{{ flight }}">{{ flight }}</option>
-    {% endfor %}
-</select>
-<br /> <br />
+<div style="display: flex; align-items: center; gap: 20px;">
+    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Belval</div>
+    <div>
+        <select class="form-control" id="flightsDropdown" onchange="updateVolumeGraph()">
+            <option value="">Select a day of flight</option>
+            {% for flight in flights %}
+                <option value="{{ flight }}">{{ flight }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div>
+        <button class="btn btn-primary" onclick="exportToCSV()">
+            <i class="fa fa-file-csv"></i> {% trans "Export to CSV" %}
+        </button>
+    </div>
+</div>
 
-<p id="pilesInfo">Showing default: {{ flights.0 }}.<br />Found: {{ n_piles }} piles.</p>
 <br />
 
+<p id="pilesInfo" class="mb-0">
+	Showing default: {{ flights.0 }}.<br />
+	Found: {{ n_piles }} piles.
+</p>
+
 <div class="row text-center">
-    
+
     <div class="col-md-4 col-sm-12">
         <div style="width: 80%; margin-left: 10%;">
             <canvas id="chartCanvas" width="260" height="320" style="margin-bottom: 12px;"></canvas>
@@ -56,12 +69,10 @@
                 </tbody>
             </table>
         </div>
-    
+
     </div>
 
 </div>
-
-<button class="btn btn-primary" onclick="exportToCSV()"><i class="fa fa-file-csv"></i> {% trans "Export to CSV" %}</button>
 
 <style>
     /* Custom CSS to make table compact */
@@ -219,6 +230,6 @@
         // Trigger click event to start the download
         link.click();
     }
-	
+
 </script>
 {% endblock %}
