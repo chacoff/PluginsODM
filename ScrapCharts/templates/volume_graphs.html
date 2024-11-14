@@ -29,7 +29,8 @@
 
 <p id="pilesInfo" class="mb-0">
 	Showing default: {{ flights.0 }}.<br />
-	Found: {{ n_piles }} piles.
+	Found: {{ n_piles }} piles.<br />
+    Last update: 2018-01-03 08:02.
 </p>
 
 <div class="row text-center">
@@ -55,7 +56,9 @@
                     <tr>
                         <th scope="col">{% trans 'Pile' %}</th>
                         <th scope="col">{% trans 'Drone Volume [m³]' %}</th>
+                        <!--
                         <th scope="col">{% trans 'Updated at' %}</th>
+                        -->
                     </tr>
                 </thead>
                 <tbody>
@@ -63,7 +66,9 @@
                     <tr>
                         <td>{{ x }}</td>
                         <td>{{ y }}</td>
+                        <!--
                         <td>{{ z }}</td>
+                        -->
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -180,7 +185,9 @@
                     updateTable(x_values, y_values, updated_at_values);
 
                     const pilesInfo = document.getElementById("pilesInfo");
-                    pilesInfo.innerHTML = `Showing flight: ${selectedFlight}.<br />Found: ${x_values.length} piles.`;
+                    pilesInfo.innerHTML = `Showing flight: ${selectedFlight}.<br />
+                    Found: ${x_values.length} piles.<br />
+                    Last update: ${formatTimestamp(updated_at_values[0])}`;
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
@@ -229,6 +236,18 @@
 
         // Trigger click event to start the download
         link.click();
+    }
+
+    function formatTimestamp(timestamp) {
+        const date = new Date(timestamp);
+        const options = {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        };
+        return date.toLocaleDateString('en-US', options).replace('at', 'at');
     }
 
 </script>
