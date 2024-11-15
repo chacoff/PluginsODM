@@ -3,6 +3,25 @@
 
 {% block content %}
 
+{% if projects_with_tasks %}
+{% for project_data in projects_with_tasks %}
+<div class="project">
+    <h3>Tasks:</h3>
+    <ul>
+        {% for task in project_data.tasks %}
+        <li class="task">
+            <span style="font-weight: bold;">{{ task.name }} {{ task.id}} ({{ task.created_at }})</span>
+        </li>
+        {% empty %}
+        <li>No tasks assigned to this project.</li>
+        {% endfor %}
+    </ul>
+</div>
+{% empty %}
+<p>No projects found.</p>
+{% endfor %}
+{% endif %}
+
 <script src="./Chart.min.js"></script>
 
 <h2>{% trans 'Volume reports' %}</h2>
@@ -30,7 +49,8 @@
 <p id="pilesInfo" class="mb-0">
 	Showing default: {{ flights.0 }}.<br />
 	Found: {{ n_piles }} piles.<br />
-    Last update: 2018-01-03 08:02.
+    Last update: 2018-01-03 08:02. <br />
+    Task ID: {{ task_id }}
 </p>
 
 <div class="row text-center">
@@ -62,7 +82,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for x, y, z in xy_pairs %}
+                    {% for x, y, _ in xy_pairs %}
                     <tr>
                         <td>{{ x }}</td>
                         <td>{{ y }}</td>
@@ -123,6 +143,7 @@
     let x_values = [{% for x in x_values %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
     let y_values = [{% for y in y_values %}{{ y }}{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
     let updated_at_values = [{% for z in updated_at_values%}"{{ z }}"{% if not forloop.last %}, {% endif %}{% endfor %}]; // python variables getting global in js
+    let task_id = '';
 
     function initChart(type) {
         const ctx = document.getElementById('chartCanvas').getContext('2d');
@@ -177,6 +198,7 @@
                     x_values = data.x_values;
                     y_values = data.y_values;
                     updated_at_values = data.updated_at_values;
+                    task_id = data.task_id;
 
                     chartInstance.data.labels = x_values;
                     chartInstance.data.datasets[0].data = y_values;
@@ -187,7 +209,8 @@
                     const pilesInfo = document.getElementById("pilesInfo");
                     pilesInfo.innerHTML = `Showing flight: ${selectedFlight}.<br />
                     Found: ${x_values.length} piles.<br />
-                    Last update: ${formatTimestamp(updated_at_values[0])}`;
+                    Last update: ${formatTimestamp(updated_at_values[0])}.<br />
+                    Task ID: ${task_id}`;
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
@@ -208,9 +231,9 @@
             volumeCell.textContent = yValues[index];
             row.appendChild(volumeCell);
 
-            const updateCell = document.createElement('td');
-            updateCell.textContent = updateValues[index];
-            row.appendChild(updateCell);
+            // const updateCell = document.createElement('td');
+            // updateCell.textContent = updateValues[index];
+            // row.appendChild(updateCell);
 
             tableBody.appendChild(row);
         });

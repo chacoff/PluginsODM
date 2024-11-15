@@ -12,6 +12,7 @@ from django.shortcuts import render
 from django.utils.translation import gettext as _
 from django.http import JsonResponse
 
+from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
 
 
@@ -26,8 +27,9 @@ class Plugin(PluginBase):
     def app_mount_points(self):
         @login_required
         def volume_graphs(request):
-            x_values, y_values, updated_at_values, flights = get_data_from_db()
+            x_values, y_values, updated_at_values, flights, task_id = get_data_from_db()
             label = "Volume [m³]"
+            projects_tasks = get_projects_with_tasks()
 
             template_args = {
                 'x_values': x_values,
@@ -36,7 +38,9 @@ class Plugin(PluginBase):
                 'label': label,
                 'xy_pairs': list(zip(x_values, y_values, updated_at_values)),
                 'n_piles': len(x_values),
-                'flights': flights
+                'flights': flights,
+                'task_id': task_id,
+                'projects_with_tasks': projects_tasks
             }
 
             return render(request, self.template_path("volume_graphs.html"), template_args)
@@ -44,8 +48,11 @@ class Plugin(PluginBase):
         @login_required
         def get_flight_data(request):
             flight_day = request.GET.get("flightDay", "")
-            x_values, y_values, updated_at_values, _ = get_data_from_db(flight_day)
-            return JsonResponse({"x_values": list(x_values), "y_values": list(y_values), "updated_at_values": list(updated_at_values)})
+            x_values, y_values, updated_at_values, _, task_id = get_data_from_db(flight_day)
+            return JsonResponse({"x_values": list(x_values),
+                                 "y_values": list(y_values),
+                                 "updated_at_values": list(updated_at_values),
+                                 "task_id": task_id})
 
         return [
             MountPoint('$', volume_graphs), 
@@ -60,7 +67,7 @@ def get_data_from_db(specific_date=None):
 
     engine = create_engine(db_url)
 
-    query = "SELECT * FROM SCRAP_BLV;"
+    query = "SELECT * FROM SCRAP_DIFF;"
     df = pd.read_sql(query, engine)
 
     engine.dispose()
@@ -72,18 +79,33 @@ def get_data_from_db(specific_date=None):
 
     df = df[df['flightday'] == specific_date]
 
-    df['volume'] = df['volume'].astype(float)
+    df['volume_drone'] = df['volume_drone'].astype(float)
     df['pile'] = df['pile'].astype(str)
     df['updated_at'] = df['updated_at'].astype(str)
 
     piles_array = df['pile'].values.tolist()  # x_values
-    volumes_array = df['volume'].values.tolist()  # y_values
+    volumes_array = df['volume_drone'].values.tolist()  # y_values
     updated_array = df['updated_at'].values.tolist()  # updated_at_values
+    task_id = df['task_id'].unique().tolist()  # it should be only one, but in case. Anyway we choose element 0 later
 
-    return piles_array, volumes_array, updated_array, flight_days
+    return piles_array, volumes_array, updated_array, flight_days, task_id[0]
 
 
 def get_all_flights(df: pd.DataFrame):
     df['flightday'] = pd.to_datetime(df['flightday'])
-    date_strings = df['flightday'].dt.strftime('%Y-%m-%d').unique().tolist()
+    date_strings = df['flightday'].dt.strftime('%Y-%m-%d %H:%M:%S').unique().tolist()
     return date_strings
+
+
+def get_projects_with_tasks():
+    projects_with_tasks = []
+    all_projects = Project.objects.all()
+
+    for project in all_projects:
+        project_tasks = Task.objects.filter(project=project)
+        projects_with_tasks.append({
+            'project': project,
+            'tasks': project_tasks,
+        })
+
+    return projects_with_tasks
