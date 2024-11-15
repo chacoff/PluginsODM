@@ -3,25 +3,6 @@
 
 {% block content %}
 
-{% if projects_with_tasks %}
-{% for project_data in projects_with_tasks %}
-<div class="project">
-    <h3>Tasks:</h3>
-    <ul>
-        {% for task in project_data.tasks %}
-        <li class="task">
-            <span style="font-weight: bold;">{{ task.name }} {{ task.id}} ({{ task.created_at }})</span>
-        </li>
-        {% empty %}
-        <li>No tasks assigned to this project.</li>
-        {% endfor %}
-    </ul>
-</div>
-{% empty %}
-<p>No projects found.</p>
-{% endfor %}
-{% endif %}
-
 <script src="./Chart.min.js"></script>
 
 <h2>{% trans 'Volume reports' %}</h2>
@@ -50,7 +31,8 @@
 	Showing default: {{ flights.0 }}.<br />
 	Found: {{ n_piles }} piles.<br />
     Last update: 2018-01-03 08:02. <br />
-    Task ID: {{ task_id }}
+    Task ID: {{ task_id }}.<br />
+    Project ID: {{ task_project_id }}
 </p>
 
 <div class="row text-center">
@@ -144,6 +126,7 @@
     let y_values = [{% for y in y_values %}{{ y }}{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
     let updated_at_values = [{% for z in updated_at_values%}"{{ z }}"{% if not forloop.last %}, {% endif %}{% endfor %}]; // python variables getting global in js
     let task_id = '';
+    let project_id = '';
 
     function initChart(type) {
         const ctx = document.getElementById('chartCanvas').getContext('2d');
@@ -199,6 +182,7 @@
                     y_values = data.y_values;
                     updated_at_values = data.updated_at_values;
                     task_id = data.task_id;
+                    project_id = data.task_project_id;
 
                     chartInstance.data.labels = x_values;
                     chartInstance.data.datasets[0].data = y_values;
@@ -210,7 +194,8 @@
                     pilesInfo.innerHTML = `Showing flight: ${selectedFlight}.<br />
                     Found: ${x_values.length} piles.<br />
                     Last update: ${formatTimestamp(updated_at_values[0])}.<br />
-                    Task ID: ${task_id}`;
+                    Task ID: ${task_id}<br />
+                    Project ID: ${project_id}`;
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
