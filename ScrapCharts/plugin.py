@@ -1,18 +1,18 @@
-from datetime import datetime
+#
+# it requires to add in urlpatterns of django:
+#
+# url(r'^media/project/(?P<path>.*)$', serve, {
+#    'document_root': os.path.join(settings.MEDIA_ROOT, 'project')
+# }),
+#
+
 import pandas as pd
 from sqlalchemy import create_engine
-import numpy as np
-import psycopg2
 import os
 
-from django import forms
 from django.contrib.auth.decorators import login_required
-from django.db.models import Count
-from django.db.models.functions import TruncMonth
 from django.shortcuts import render
-from django.utils.translation import gettext as _
 from django.http import JsonResponse
-from django.http import HttpResponse
 from django.conf import settings
 
 from app.models import Project, Task
