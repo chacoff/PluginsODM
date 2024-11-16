@@ -32,8 +32,13 @@
 	Found: {{ n_piles }} piles.<br />
     Last update: 2018-01-03 08:02. <br />
     Task ID: {{ task_id }}.<br />
-    Project ID: {{ task_project_id }}
+    Project ID: {{ task_project_id }}.<br />
+    <a href="#">View orthomosaic image</a>
 </p>
+
+<div class="lightbox" id="lightbox" onclick="closeLightbox()">
+    <img id="lightbox-image" src="" alt="Lightbox Image">
+</div>
 
 <div class="row text-center">
 
@@ -90,6 +95,39 @@
     .compact-table tr {
         line-height: 1.0 !important;
     }
+
+    /* CSS for the image lightbox */
+/* Lightbox backdrop */
+    .lightbox {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.1);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    /* Lightbox image */
+    .lightbox img {
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 5px;
+    }
+
+    /* Close button */
+    .lightbox:after {
+      content: "✖";
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      font-size: 24px;
+      color: white;
+      cursor: pointer;
+    }
 </style>
 
 <script>
@@ -127,6 +165,7 @@
     let updated_at_values = [{% for z in updated_at_values%}"{{ z }}"{% if not forloop.last %}, {% endif %}{% endfor %}]; // python variables getting global in js
     let task_id = '';
     let project_id = '';
+    let image_url = '';
 
     function initChart(type) {
         const ctx = document.getElementById('chartCanvas').getContext('2d');
@@ -183,6 +222,7 @@
                     updated_at_values = data.updated_at_values;
                     task_id = data.task_id;
                     project_id = data.task_project_id;
+                    image_url = data.image_url;
 
                     chartInstance.data.labels = x_values;
                     chartInstance.data.datasets[0].data = y_values;
@@ -194,8 +234,9 @@
                     pilesInfo.innerHTML = `Showing flight: ${selectedFlight}.<br />
                     Found: ${x_values.length} piles.<br />
                     Last update: ${formatTimestamp(updated_at_values[0])}.<br />
-                    Task ID: ${task_id}<br />
-                    Project ID: ${project_id}`;
+                    Task ID: ${task_id}.<br />
+                    Project ID: ${project_id}.<br />
+                    <a href="#" onclick="openLightbox('${image_url}')">View orthomosaic image</a>`;
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
@@ -246,6 +287,7 @@
         link.click();
     }
 
+    //Formats the timestamp coming from the DB for a better display.
     function formatTimestamp(timestamp) {
         const date = new Date(timestamp);
         const options = {
@@ -256,6 +298,20 @@
             minute: '2-digit'
         };
         return date.toLocaleDateString('en-US', options).replace('at', 'at');
+    }
+
+    // Function to open the lightbox with the given image URL
+    function openLightbox(imageUrl) {
+      const lightbox = document.getElementById('lightbox');
+      const lightboxImage = document.getElementById('lightbox-image');
+      lightboxImage.src = imageUrl;
+      lightbox.style.display = 'flex';
+    }
+
+    // Function to close the lightbox
+    function closeLightbox() {
+      const lightbox = document.getElementById('lightbox');
+      lightbox.style.display = 'none';
     }
 
 </script>

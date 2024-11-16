@@ -3,6 +3,7 @@ import pandas as pd
 from sqlalchemy import create_engine
 import numpy as np
 import psycopg2
+import os
 
 from django import forms
 from django.contrib.auth.decorators import login_required
@@ -11,9 +12,13 @@ from django.db.models.functions import TruncMonth
 from django.shortcuts import render
 from django.utils.translation import gettext as _
 from django.http import JsonResponse
+from django.http import HttpResponse
+from django.conf import settings
 
 from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
+
+from PIL import Image
 
 
 class Plugin(PluginBase):
@@ -31,6 +36,7 @@ class Plugin(PluginBase):
             label = "Volume [m³]"
             projects_tasks = get_projects_with_tasks()
             project_id = get_project_id_from_task_id(projects_tasks, task_id)
+            orto = f'/media/project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.tif'
 
             template_args = {
                 'x_values': x_values,
@@ -42,7 +48,8 @@ class Plugin(PluginBase):
                 'flights': flights,
                 'task_id': task_id,
                 'task_project_id': project_id,
-                'projects_with_tasks': projects_tasks
+                'projects_with_tasks': projects_tasks,
+                'image_url': orto
             }
 
             return render(request, self.template_path("volume_graphs.html"), template_args)
@@ -53,11 +60,30 @@ class Plugin(PluginBase):
             x_values, y_values, updated_at_values, _, task_id = get_data_from_db(flight_day)
             projects_tasks = get_projects_with_tasks()
             project_id = get_project_id_from_task_id(projects_tasks, task_id)
+
+            tiff_path = os.path.join(settings.MEDIA_ROOT,
+                                     f'project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
+            png_path = os.path.join(settings.MEDIA_ROOT,
+                                    f'project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.png')
+
+            print(png_path)
+
+            if not os.path.exists(png_path):
+                try:
+                    with Image.open(tiff_path) as img:
+                        img.save(png_path, 'PNG')
+                        print(f'Properly converted from TIFF to PNG')
+                except Exception as e:
+                    print(f'Failed to convert TIFF to PNG: {str(e)}')
+
+            orto_png = f'/media/project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.png'
+
             return JsonResponse({"x_values": list(x_values),
                                  "y_values": list(y_values),
                                  "updated_at_values": list(updated_at_values),
                                  "task_id": task_id,
-                                 "task_project_id": project_id})
+                                 "task_project_id": project_id,
+                                 "image_url": orto_png})
 
         return [
             MountPoint('$', volume_graphs), 
