@@ -3,6 +3,8 @@
 
 {% block content %}
 
+<link rel="stylesheet" href="./venobox.min.css" type="text/css" media="screen" />
+<script type="text/javascript" src="./venobox.min.js"></script>
 <script src="./Chart.min.js"></script>
 
 <h2>{% trans 'Volume reports' %}</h2>
@@ -28,17 +30,13 @@
 <br />
 
 <p id="pilesInfo" class="mb-0">
-	Showing default: {{ flights.0 }}.<br />
-	Found: {{ n_piles }} piles.<br />
-    Last update: 2018-01-03 08:02. <br />
-    Task ID: {{ task_id }}.<br />
-    Project ID: {{ task_project_id }}.<br />
+    Found: 0 piles.<br /> <!-- {{ n_piles }} -->
+	Showing default: .<br /> <!-- {{ flights.0 }} -->
+    Last update: 2018-01-03 08:02. <br /> <!-- -->
+    Task ID: .<br /> <!-- {{ task_id }} -->
+    Project ID: .<br /> <!-- {{ task_project_id }} -->
     <a href="#">View orthomosaic image</a>
 </p>
-
-<div class="lightbox" id="lightbox" onclick="closeLightbox()">
-    <img id="lightbox-image" src="" alt="Lightbox Image">
-</div>
 
 <div class="row text-center">
 
@@ -95,42 +93,23 @@
     .compact-table tr {
         line-height: 1.0 !important;
     }
-
-    /* CSS for the image lightbox */
-/* Lightbox backdrop */
-    .lightbox {
-      display: none;
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.1);
-      justify-content: center;
-      align-items: center;
-      z-index: 1000;
-    }
-
-    /* Lightbox image */
-    .lightbox img {
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 5px;
-    }
-
-    /* Close button */
-    .lightbox:after {
-      content: "✖";
-      position: absolute;
-      top: 20px;
-      right: 20px;
-      font-size: 24px;
-      color: white;
-      cursor: pointer;
-    }
 </style>
 
 <script>
+    function initVenoBox(){
+        new VenoBox({
+                selector: '.orto',
+                fitView: true,
+                numeration: false,
+                infinigall: false,
+                share: true,
+                spinColor: '#ed6b0c',
+                spinner: 'wave'
+        });
+    }
+
+    initVenoBox()
+
 	const modern_colors = [
 		"rgb(255, 99, 132)",    // Coral Pink
 		"rgb(255, 87, 87)",     // Bright Red
@@ -231,12 +210,15 @@
                     updateTable(x_values, y_values, updated_at_values);
 
                     const pilesInfo = document.getElementById("pilesInfo");
-                    pilesInfo.innerHTML = `Showing flight: ${selectedFlight}.<br />
+                    pilesInfo.innerHTML = `
+                    Showing flight: ${selectedFlight}.<br />
                     Found: ${x_values.length} piles.<br />
                     Last update: ${formatTimestamp(updated_at_values[0])}.<br />
                     Task ID: ${task_id}.<br />
                     Project ID: ${project_id}.<br />
-                    <a href="#" onclick="openLightbox('${image_url}')">View orthomosaic image</a>`;
+                    <a class="orto" href="${image_url}">View orthomosaic image</a>`;
+
+                    initVenoBox()
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
@@ -299,20 +281,5 @@
         };
         return date.toLocaleDateString('en-US', options).replace('at', 'at');
     }
-
-    // Function to open the lightbox with the given image URL
-    function openLightbox(imageUrl) {
-      const lightbox = document.getElementById('lightbox');
-      const lightboxImage = document.getElementById('lightbox-image');
-      lightboxImage.src = imageUrl;
-      lightbox.style.display = 'flex';
-    }
-
-    // Function to close the lightbox
-    function closeLightbox() {
-      const lightbox = document.getElementById('lightbox');
-      lightbox.style.display = 'none';
-    }
-
 </script>
 {% endblock %}
