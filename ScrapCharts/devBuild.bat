@@ -10,10 +10,10 @@ mkdir "!TEMP_FOLDER!"
 mkdir "!TEMP_FOLDER!\public"
 mkdir "!TEMP_FOLDER!\templates"
 
-copy "!SOURCE_FOLDER!public\Chart.min.js" "!TEMP_FOLDER!\public\"
+rem copy "!SOURCE_FOLDER!public\Chart.min.js" "!TEMP_FOLDER!\public\"
 copy "!SOURCE_FOLDER!templates\volume_graphs.html" "!TEMP_FOLDER!\templates\"
-copy "!SOURCE_FOLDER!__init__.py" "!TEMP_FOLDER!\"
-copy "!SOURCE_FOLDER!manifest.json" "!TEMP_FOLDER!\"
+rem copy "!SOURCE_FOLDER!__init__.py" "!TEMP_FOLDER!\"
+rem copy "!SOURCE_FOLDER!manifest.json" "!TEMP_FOLDER!\"
 copy "!SOURCE_FOLDER!plugin.py" "!TEMP_FOLDER!\"
 
 wsl -d docker-desktop cp -rf /mnt/host/c/TempCopy/* "!WSL_DEST!/"
