@@ -43,8 +43,8 @@ class Plugin(PluginBase):
                 'y_values': y_values,
                 'updated_at_values': updated_at_values,
                 'label': label,
-                'xy_pairs': list(zip(x_values, y_values, updated_at_values)),
-                'n_piles': len(x_values),
+                # 'xy_pairs': list(zip(x_values, y_values, updated_at_values)),
+                'n_piles': 0,  # len(x_values),
                 'flights': flights,
                 'task_id': task_id,
                 'task_project_id': project_id,
@@ -91,7 +91,7 @@ class Plugin(PluginBase):
             ]
 
 
-def get_data_from_db(specific_date=None):
+def get_data_from_db(specific_date=None) -> tuple[list, list, list, pd.DataFrame, str]:
 
     # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
     db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
@@ -106,7 +106,7 @@ def get_data_from_db(specific_date=None):
     flight_days = get_all_flights(df)
 
     if not specific_date:
-        specific_date = flight_days[0]  # get first in the list
+        return [], [], [], flight_days, '0'
 
     df = df[df['flightday'] == specific_date]
 
@@ -117,18 +117,21 @@ def get_data_from_db(specific_date=None):
     piles_array = df['pile'].values.tolist()  # x_values
     volumes_array = df['volume_drone'].values.tolist()  # y_values
     updated_array = df['updated_at'].values.tolist()  # updated_at_values
-    task_id = df['task_id'].unique().tolist()  # it should be only one, but in case. Anyway we choose element 0 later
+    task_id = df['task_id'].unique().tolist()  # it should be only one, but in case, anyway we choose element 0
 
     return piles_array, volumes_array, updated_array, flight_days, task_id[0]
 
 
-def get_all_flights(df: pd.DataFrame):
+def get_all_flights(df: pd.DataFrame) -> pd.DataFrame:
+    """ gets all flights available in the database based on their <<flightday>> """
+
     df['flightday'] = pd.to_datetime(df['flightday'])
     date_strings = df['flightday'].dt.strftime('%Y-%m-%d %H:%M:%S').unique().tolist()
+
     return date_strings
 
 
-def get_projects_with_tasks():
+def get_projects_with_tasks() -> list[dict[str, any]]:
     projects_with_tasks = []
     all_projects = Project.objects.all()
 
