@@ -29,14 +29,36 @@
 
 <br />
 
-<p id="pilesInfo" class="mb-0">
-    Found: 0 piles.<br /> <!-- {{ n_piles }} -->
-	Showing default: .<br /> <!-- {{ flights.0 }} -->
-    Last update: 2018-01-03 08:02. <br /> <!-- -->
-    Task ID: .<br /> <!-- {{ task_id }} -->
-    Project ID: .<br /> <!-- {{ task_project_id }} -->
-    <a href="#">View orthomosaic image</a>
-</p>
+<div id="pilesInfo">
+    <div class="container_info">
+        <div class="row">
+            <div class="label">Found:</div>
+            <div class="value"></div> <!-- {{ n_piles }} -->
+        </div>
+        <div class="row">
+            <div class="label">Flight date:</div>
+            <div class="value"></div> <!-- {{ flights.0 }} -->
+        </div>
+        <div class="row">
+            <div class="label">Last update:</div>
+            <div class="value">January 03, 2018 at 08:02am</div> <!-- -->
+        </div>
+        <div class="row">
+            <div class="label">Task ID:</div>
+            <div class="value"></div> <!-- {{ task_id }} -->
+        </div>
+        <div class="row">
+            <div class="label">Project ID:</div>
+            <div class="value"></div> <!-- {{ task_project_id }} -->
+        </div>
+        <div class="row">
+            <div class="label">Orthomosaic:</div>
+            <div class="value"><a href="#">View orthomosaic image</a></div>
+        </div>
+    </div>
+</div>
+
+<br />
 
 <div class="row text-center">
 
@@ -85,6 +107,45 @@
 </div>
 
 <style>
+    #pilesInfo {
+            margin: 0; /* Align container to the left */
+            padding: 10px;
+            background-color: #fff;
+            /* border-radius: 5px; */
+            /* box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1); */
+    }
+
+    .container_info {
+        display: flex;
+        flex-direction: column;
+        gap: 2px; /* Add spacing between rows */
+    }
+
+    .row {
+        display: flex;
+        margin-bottom: 6px;
+    }
+
+    .row:last-child {
+        margin-bottom: 16;
+    }
+
+    .label {
+        flex: 0 0 9%;
+        font-weight: bold;
+        font-size: 14px;
+        color: #555;
+        text-align: right;
+        margin-right: 10px;
+    }
+
+    .value {
+        flex: 0 0 91%;
+        font-size: 14px;
+        text-align: left;
+        overflow-wrap: break-word;
+    }
+
     /* Custom CSS to make table compact */
     .compact-table th, .compact-table td {
         padding: 1px 1px !important;
@@ -210,13 +271,34 @@
                     updateTable(x_values, y_values, updated_at_values);
 
                     const pilesInfo = document.getElementById("pilesInfo");
+                    pilesInfo.innerHTML = "";
                     pilesInfo.innerHTML = `
-                    Showing flight: ${selectedFlight}.<br />
-                    Found: ${x_values.length} piles.<br />
-                    Last update: ${formatTimestamp(updated_at_values[0])}.<br />
-                    Task ID: ${task_id}.<br />
-                    Project ID: ${project_id}.<br />
-                    <a class="orto" href="${image_url}">View orthomosaic image</a>`;
+                    <div class="container_info">
+                        <div class="row">
+                            <div class="label">Found:</div>
+                            <div class="value">${x_values.length} piles</div> <!-- {{ n_piles }} -->
+                        </div>
+                        <div class="row">
+                            <div class="label">Flight date:</div>
+                            <div class="value">${formatTimestamp(selectedFlight)}.</div> <!-- {{ flights.0 }} -->
+                        </div>
+                        <div class="row">
+                            <div class="label">Last update:</div>
+                            <div class="value">${formatTimestamp(updated_at_values[0])}.</div> <!-- -->
+                        </div>
+                        <div class="row">
+                            <div class="label">Task ID:</div>
+                            <div class="value">${task_id}.</div> <!-- {{ task_id }} -->
+                        </div>
+                        <div class="row">
+                            <div class="label">Project ID:</div>
+                            <div class="value">${project_id}.</div> <!-- {{ task_project_id }} -->
+                        </div>
+                        <div class="row">
+                            <div class="label">Orthomosaic:</div>
+                            <div class="value"><a class="orto" href="${image_url}">View orthomosaic image</a></div>
+                        </div>
+                    </div>`;
 
                     initVenoBox()
                 })
