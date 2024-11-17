@@ -11,6 +11,8 @@
 <h2>{% trans 'Volume reports' %}</h2>
 <br />
 
+<!-- Dropbox menu -->
+{% if isGlobal or isBelval %}
 <div style="display: flex; align-items: center; gap: 20px;">
     <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Belval</div>
     <div>
@@ -27,6 +29,8 @@
         </button>
     </div>
 </div>
+{% endif %}
+<!-- Dropbox menu -->
 
 <br />
 

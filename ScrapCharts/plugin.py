@@ -33,10 +33,11 @@ class Plugin(PluginBase):
         @login_required
         def volume_graphs(request):
             x_values, y_values, updated_at_values, flights, task_id = get_data_from_db()
-            label = "Volume [m³]"
-            projects_tasks = get_projects_with_tasks()
-            project_id = get_project_id_from_task_id(projects_tasks, task_id)
-            orto = f'/media/project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.tif'
+            label: str = "Volume [m³]"
+            projects_tasks: list[dict[str, any]] = get_projects_with_tasks()
+            project_id: int = get_project_id_from_task_id(projects_tasks, task_id)
+            orto: str = f'/media/project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.tif'
+            groups: list[bool] = get_user_group(request)
 
             template_args = {
                 'x_values': x_values,
@@ -50,7 +51,10 @@ class Plugin(PluginBase):
                 'task_project_id': project_id,
                 'projects_with_tasks': projects_tasks,
                 'image_url': orto,
-                'isFirstOpen': True
+                'isFirstOpen': True,
+                'isBelval': groups[0],
+                'isDiffer': groups[1],
+                'isGlobal': groups[2]
             }
 
             return render(request, self.template_path("volume_graphs.html"), template_args)
@@ -66,8 +70,6 @@ class Plugin(PluginBase):
                                      f'project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
             png_path = os.path.join(settings.MEDIA_ROOT,
                                     f'project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.png')
-
-            print(png_path)
 
             if not os.path.exists(png_path):
                 try:
@@ -93,7 +95,19 @@ class Plugin(PluginBase):
             ]
 
 
+def get_user_group(request) -> list[bool]:
+    """ gets user group of every user in database """
+
+    # user_groups = request.user.groups.all()
+    is_belval: bool = request.user.groups.filter(name='Belval').exists()
+    is_differ: bool = request.user.groups.filter(name='Differdange').exists()
+    is_global: bool = request.user.groups.filter(name='Global').exists()
+
+    return [is_belval, is_differ, is_global]
+
+
 def get_data_from_db(specific_date=None) -> tuple[list, list, list, pd.DataFrame, str]:
+    """ gets all data from the DB and returns a dataframe with it """
 
     # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
     db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
