@@ -49,7 +49,8 @@ class Plugin(PluginBase):
                 'task_id': task_id,
                 'task_project_id': project_id,
                 'projects_with_tasks': projects_tasks,
-                'image_url': orto
+                'image_url': orto,
+                'isFirstOpen': True
             }
 
             return render(request, self.template_path("volume_graphs.html"), template_args)
@@ -83,7 +84,8 @@ class Plugin(PluginBase):
                                  "updated_at_values": list(updated_at_values),
                                  "task_id": task_id,
                                  "task_project_id": project_id,
-                                 "image_url": orto_png})
+                                 "image_url": orto_png,
+                                 'isFirstOpen': False})
 
         return [
             MountPoint('$', volume_graphs), 
