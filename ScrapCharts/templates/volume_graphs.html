@@ -168,6 +168,10 @@
     let project_id;
     let image_url;
 
+    initChart('bar');
+    initVenoBox()
+    hideContent()
+
     function hideContent() {
         console.log(isFirstOpen);
         const element = document.getElementById('masterContent');
@@ -190,9 +194,6 @@
             spinner: 'wave'
         });
     }
-
-    initVenoBox()
-    hideContent()
 
     function initChart(type) {
         const ctx = document.getElementById('chartCanvas').getContext('2d');
@@ -234,8 +235,6 @@
     function changeChartType(newType) {
         initChart(newType);
     }
-
-    initChart('bar');
 
     function updateVolumeGraph() {
         const selectedFlight = document.getElementById('flightsDropdown').value;
