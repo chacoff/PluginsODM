@@ -142,7 +142,7 @@ def get_data_from_db(specific_date=None) -> dict:
 
     engine = create_engine(db_url)
 
-    query = "SELECT * FROM SCRAP_DIFF;"
+    query = "SELECT * FROM SCRAP_BLV;"
     df = pd.read_sql(query, engine)
 
     engine.dispose()
