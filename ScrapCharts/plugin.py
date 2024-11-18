@@ -14,11 +14,27 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from django.http import JsonResponse
 from django.conf import settings
+from django.conf.urls import include, url
+from django.views.static import serve
 
 from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
 
 from PIL import Image
+
+
+def init_urls() -> None:
+    urlpatterns = [
+        url(r'^media/project/(?P<path>.*)$', serve, {
+            'document_root': os.path.join(settings.MEDIA_ROOT, 'project')
+        }),
+    ]
+
+    root_urlconf = __import__(settings.ROOT_URLCONF, {}, {}, [''])
+
+    if hasattr(root_urlconf, 'urlpatterns'):
+        root_urlconf.urlpatterns += urlpatterns
+        print('Added media/project urls')
 
 
 class Plugin(PluginBase):
@@ -30,6 +46,8 @@ class Plugin(PluginBase):
         return ['Chart.min.js']
 
     def app_mount_points(self):
+        init_urls()
+
         @login_required
         def volume_graphs(request):
             x_values, y_values, updated_at_values, flights, task_id = get_data_from_db()
