@@ -83,21 +83,7 @@ class Plugin(PluginBase):
             x_values, y_values, updated_at_values, _, task_id = get_data_from_db(flight_day)
             projects_tasks = get_projects_with_tasks()
             project_id = get_project_id_from_task_id(projects_tasks, task_id)
-
-            tiff_path = os.path.join(settings.MEDIA_ROOT,
-                                     f'project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
-            png_path = os.path.join(settings.MEDIA_ROOT,
-                                    f'project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.png')
-
-            if not os.path.exists(png_path):
-                try:
-                    with Image.open(tiff_path) as img:
-                        img.save(png_path, 'PNG')
-                        print(f'Properly converted from TIFF to PNG')
-                except Exception as e:
-                    print(f'Failed to convert TIFF to PNG: {str(e)}')
-
-            orto_png = f'/media/project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.png'
+            orto_png = convert_tif_to_png(project_id, task_id)
 
             return JsonResponse({"x_values": list(x_values),
                                  "y_values": list(y_values),
@@ -111,6 +97,27 @@ class Plugin(PluginBase):
             MountPoint('$', volume_graphs), 
             MountPoint('get_flight_data', get_flight_data)
             ]
+
+
+def convert_tif_to_png(_project_id, _task_id) -> str:
+    """ convert tif to png to display upon request """
+
+    tiff_path = os.path.join(settings.MEDIA_ROOT,
+                             f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
+    png_path = os.path.join(settings.MEDIA_ROOT,
+                            f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.png')
+
+    if not os.path.exists(png_path):
+        try:
+            with Image.open(tiff_path) as img:
+                img.save(png_path, 'PNG')
+                print(f'{_task_id}: properly converted from TIFF to PNG')
+        except Exception as e:
+            print(f'Failed to convert TIFF to PNG: {str(e)}')
+
+    _orto_png: str = f'/media/project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.png'
+
+    return _orto_png
 
 
 def get_user_group(request) -> list[bool]:
