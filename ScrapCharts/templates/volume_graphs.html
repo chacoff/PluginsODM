@@ -37,6 +37,10 @@
 <div id="pilesInfo">
     <div class="container_info">
         <div class="row">
+            <div class="label">Sector:</div>
+            <div class="value"></div> <!-- {{ place }} -->
+        </div>
+        <div class="row">
             <div class="label">Found:</div>
             <div class="value"></div> <!-- {{ n_piles }} -->
         </div>
@@ -171,6 +175,7 @@
     let task_id;
     let project_id;
     let image_url;
+    let place;
 
     initChart('bar');
     initVenoBox()
@@ -254,6 +259,7 @@
                     project_id = data.task_project_id;
                     image_url = data.image_url;
                     isFirstOpen = data.isFirstOpen;  // Attention: use to show the content
+                    place = data.sector_place;
 
                     chartInstance.data.labels = x_values;
                     chartInstance.data.datasets[0].data = y_values;
@@ -265,6 +271,10 @@
                     pilesInfo.innerHTML = "";
                     pilesInfo.innerHTML = `
                     <div class="container_info">
+                        <div class="row">
+                            <div class="label">Sector:</div>
+                            <div class="value">${place}</div> <!-- {{ place }} -->
+                        </div>
                         <div class="row">
                             <div class="label">Found:</div>
                             <div class="value">${x_values.length} piles</div> <!-- {{ n_piles }} -->
