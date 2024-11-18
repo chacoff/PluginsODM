@@ -12,7 +12,6 @@
 <br />
 
 <!-- Dropbox menu -->
-{% if isGlobal or isBelval %}
 <div style="display: flex; align-items: center; gap: 20px;">
     <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Select source:</div>
     <div>
@@ -35,7 +34,6 @@
         </button>
     </div>
 </div>
-{% endif %}
 <!-- Dropbox menu -->
 
 <br />
@@ -182,7 +180,7 @@
     let project_id;
     let image_url;
     let place;
-    let factory;
+    let flight_list;
 
     initChart('bar');
     initVenoBox()
@@ -207,7 +205,7 @@
             infinigall: false,
             share: true,
             spinColor: '#ed6b0c',
-            spinner: 'wave'
+            spinner: 'plane'
         });
     }
 
@@ -259,8 +257,25 @@
             fetch(`/plugins/ScrapCharts/get_factory_flights?factory=${selectedFactory}`)
                 .then(response => response.json())
                 .then(data =>{
-                    factory = data.flightList;
-                    console.log(factory);
+                    flight_list = data.flightList;
+                    console.log(flight_list);
+
+                    const dropdown = document.getElementById('flightsDropdown');
+
+                    dropdown.innerHTML = '';
+
+                    const defaultOption = document.createElement('option');
+                    defaultOption.value = '';
+                    defaultOption.textContent = 'Select a day of flight';
+                    dropdown.appendChild(defaultOption);
+
+                    flight_list.forEach(flight => {
+                        const option = document.createElement('option');
+                        option.value = flight;
+                        option.textContent = flight;
+                        dropdown.appendChild(option);
+                    });
+
                 })
                 .catch(error => console.error('Error fetching factory data:', error));
         }

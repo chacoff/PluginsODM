@@ -53,7 +53,15 @@ class Plugin(PluginBase):
             groups: list[bool] = get_user_group(request)
             # TODO: sort factory list according users
 
-            db_data = get_data_from_db(None, 'Belval')
+            fct: str = ''
+            if groups[0]:  # isBelval
+                fct = "Belval"
+            if groups[1]:  # isDiffer
+                fct = "Differdange"
+            if groups[2]:  # isGlobal
+                fct = "Belval"
+
+            db_data = get_data_from_db(None, fct)
             label: str = "Volume [m³]"
             projects_tasks: list[dict[str, any]] = get_projects_with_tasks()
             project_id: int = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
