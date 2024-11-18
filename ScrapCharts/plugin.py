@@ -50,22 +50,23 @@ class Plugin(PluginBase):
 
         @login_required
         def volume_graphs(request):
-            x_values, y_values, updated_at_values, flights, task_id = get_data_from_db()
+            # x_values, y_values, updated_at_values, flights, task_id = get_data_from_db()
+            db_data = get_data_from_db()
             label: str = "Volume [m³]"
             projects_tasks: list[dict[str, any]] = get_projects_with_tasks()
-            project_id: int = get_project_id_from_task_id(projects_tasks, task_id)
-            orto: str = f'/media/project/{project_id}/task/{task_id}/assets/odm_orthophoto/odm_orthophoto.tif'
+            project_id: int = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
+            orto: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.tif'
             groups: list[bool] = get_user_group(request)
 
             template_args = {
-                'x_values': x_values,
-                'y_values': y_values,
-                'updated_at_values': updated_at_values,
+                'x_values': db_data['piles_array'],
+                'y_values': db_data['volumes_array'],
+                'updated_at_values': db_data['updated_array'],
                 'label': label,
                 # 'xy_pairs': list(zip(x_values, y_values, updated_at_values)),
                 'n_piles': 0,  # len(x_values),
-                'flights': flights,
-                'task_id': task_id,
+                'flights': db_data['flight_days'],
+                'task_id': db_data['task_id'],
                 'task_project_id': project_id,
                 'projects_with_tasks': projects_tasks,
                 'image_url': orto,
@@ -80,18 +81,20 @@ class Plugin(PluginBase):
         @login_required
         def get_flight_data(request):
             flight_day = request.GET.get("flightDay", "")
-            x_values, y_values, updated_at_values, _, task_id = get_data_from_db(flight_day)
+            # x_values, y_values, updated_at_values, _, task_id = get_data_from_db(flight_day)
+            db_data = get_data_from_db(flight_day)
             projects_tasks = get_projects_with_tasks()
-            project_id = get_project_id_from_task_id(projects_tasks, task_id)
-            orto_png = convert_tif_to_png(project_id, task_id)
+            project_id = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
+            orto_png = convert_tif_to_png(project_id, db_data['task_id'])
 
-            return JsonResponse({"x_values": list(x_values),
-                                 "y_values": list(y_values),
-                                 "updated_at_values": list(updated_at_values),
-                                 "task_id": task_id,
+            return JsonResponse({"x_values": list(db_data['piles_array']),
+                                 "y_values": list(db_data['volumes_array']),
+                                 "updated_at_values": list(db_data['updated_array']),
+                                 "task_id": db_data['task_id'],
                                  "task_project_id": project_id,
                                  "image_url": orto_png,
-                                 'isFirstOpen': False})
+                                 'isFirstOpen': False,
+                                 'sector_place': db_data['place']})
 
         return [
             MountPoint('$', volume_graphs), 
@@ -131,8 +134,8 @@ def get_user_group(request) -> list[bool]:
     return [is_belval, is_differ, is_global]
 
 
-def get_data_from_db(specific_date=None) -> tuple[list, list, list, pd.DataFrame, str]:
-    """ gets all data from the DB and returns a dataframe with it """
+def get_data_from_db(specific_date=None) -> dict:
+    """ gets all data from the DB and returns a dataframe with it based on flightday = specific_date"""
 
     # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
     db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
@@ -146,21 +149,34 @@ def get_data_from_db(specific_date=None) -> tuple[list, list, list, pd.DataFrame
 
     flight_days = get_all_flights(df)
 
-    if not specific_date:
-        return [], [], [], flight_days, '0'
+    db_data: dict = {
+        'piles_array': [],
+        'volumes_array': [],
+        'updated_array': [],
+        'flight_days': flight_days,
+        'task_id': 0,
+        'place': 'unknown'
+    }
 
-    df = df[df['flightday'] == specific_date]
+    if not specific_date:
+        return db_data
+
+    df = df[df['flightday'] == specific_date]  # filter df according flight day
 
     df['volume_drone'] = df['volume_drone'].astype(float)
     df['pile'] = df['pile'].astype(str)
     df['updated_at'] = df['updated_at'].astype(str)
 
-    piles_array = df['pile'].values.tolist()  # x_values
-    volumes_array = df['volume_drone'].values.tolist()  # y_values
-    updated_array = df['updated_at'].values.tolist()  # updated_at_values
-    task_id = df['task_id'].unique().tolist()  # it should be only one, but in case, anyway we choose element 0
+    db_data['piles_array'] = df['pile'].values.tolist()  # x_values
+    db_data['volumes_array'] = df['volume_drone'].values.tolist()  # y_values
+    db_data['updated_array'] = df['updated_at'].values.tolist()  # updated_at_values
+    task_id = df['task_id'].unique().tolist()  # it should be only one, in case, we choose element 0 later
+    db_data['task_id'] = task_id[0]
+    factory: list = df['factory'].unique().tolist()
+    sector: list = df['sector'].unique().tolist()
+    db_data['place'] = f'{factory[0]} - {sector[0]}'
 
-    return piles_array, volumes_array, updated_array, flight_days, task_id[0]
+    return db_data
 
 
 def get_all_flights(df: pd.DataFrame) -> pd.DataFrame:
