@@ -14,7 +14,13 @@
 <!-- Dropbox menu -->
 {% if isGlobal or isBelval %}
 <div style="display: flex; align-items: center; gap: 20px;">
-    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Belval</div>
+    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Select source:</div>
+    <div>
+        <select class="form-control" id="factoryDropdown" onchange="updateFlightsDropdown()">
+            <option>Belval</option>
+            <option>Differdange</option>
+        </select>
+    </div>
     <div>
         <select class="form-control" id="flightsDropdown" onchange="updateVolumeGraph()">
             <option value="">Select a day of flight</option>
@@ -176,6 +182,7 @@
     let project_id;
     let image_url;
     let place;
+    let factory;
 
     initChart('bar');
     initVenoBox()
@@ -245,11 +252,26 @@
         initChart(newType);
     }
 
+    function updateFlightsDropdown(){
+        const selectedFactory = document.getElementById('factoryDropdown').value;
+
+        if (selectedFactory){
+            fetch(`/plugins/ScrapCharts/get_factory_flights?factory=${selectedFactory}`)
+                .then(response => response.json())
+                .then(data =>{
+                    factory = data.flightList;
+                    console.log(factory);
+                })
+                .catch(error => console.error('Error fetching factory data:', error));
+        }
+    }
+
     function updateVolumeGraph() {
         const selectedFlight = document.getElementById('flightsDropdown').value;
+        const selectedFactory = document.getElementById('factoryDropdown').value;
 
         if (selectedFlight) {
-            fetch(`/plugins/ScrapCharts/get_flight_data?flightDay=${selectedFlight}`)
+            fetch(`/plugins/ScrapCharts/get_flight_data?flightDay=${selectedFlight}&factory=${selectedFactory}`)
                 .then(response => response.json())
                 .then(data => {
                     x_values = data.x_values;

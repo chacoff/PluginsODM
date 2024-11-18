@@ -50,13 +50,14 @@ class Plugin(PluginBase):
 
         @login_required
         def volume_graphs(request):
-            # x_values, y_values, updated_at_values, flights, task_id = get_data_from_db()
-            db_data = get_data_from_db()
+            groups: list[bool] = get_user_group(request)
+            # TODO: sort factory list according users
+
+            db_data = get_data_from_db(None, 'Belval')
             label: str = "Volume [m³]"
             projects_tasks: list[dict[str, any]] = get_projects_with_tasks()
             project_id: int = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
             orto: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.tif'
-            groups: list[bool] = get_user_group(request)
 
             template_args = {
                 'x_values': db_data['piles_array'],
@@ -81,8 +82,9 @@ class Plugin(PluginBase):
         @login_required
         def get_flight_data(request):
             flight_day = request.GET.get("flightDay", "")
-            # x_values, y_values, updated_at_values, _, task_id = get_data_from_db(flight_day)
-            db_data = get_data_from_db(flight_day)
+            factory = request.GET.get("factory", "")
+
+            db_data = get_data_from_db(flight_day, factory)
             projects_tasks = get_projects_with_tasks()
             project_id = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
             orto_png = convert_tif_to_png(project_id, db_data['task_id'])
@@ -96,9 +98,18 @@ class Plugin(PluginBase):
                                  'isFirstOpen': False,
                                  'sector_place': db_data['place']})
 
+        @login_required
+        def get_factory_flights(request):
+            factory = request.GET.get("factory", "")
+
+            db_data = get_data_from_db(None, factory)
+
+            return JsonResponse({"flightList": db_data['flight_days']})
+
         return [
             MountPoint('$', volume_graphs), 
-            MountPoint('get_flight_data', get_flight_data)
+            MountPoint('get_flight_data', get_flight_data),
+            MountPoint('get_factory_flights', get_factory_flights)
             ]
 
 
@@ -134,20 +145,10 @@ def get_user_group(request) -> list[bool]:
     return [is_belval, is_differ, is_global]
 
 
-def get_data_from_db(specific_date=None) -> dict:
+def get_data_from_db(specific_date=None, factory='') -> dict:
     """ gets all data from the DB and returns a dataframe with it based on flightday = specific_date"""
 
-    # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
-    db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
-
-    engine = create_engine(db_url)
-
-    query = "SELECT * FROM SCRAP_BLV;"
-    df = pd.read_sql(query, engine)
-
-    engine.dispose()
-
-    flight_days = get_all_flights(df)
+    flight_days, df = get_all_flights(factory)  # all flights from a factory and all full dataset
 
     db_data: dict = {
         'piles_array': [],
@@ -179,13 +180,33 @@ def get_data_from_db(specific_date=None) -> dict:
     return db_data
 
 
-def get_all_flights(df: pd.DataFrame) -> pd.DataFrame:
+def get_all_flights(factory: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     """ gets all flights available in the database based on their <<flightday>> """
 
-    df['flightday'] = pd.to_datetime(df['flightday'])
-    date_strings = df['flightday'].dt.strftime('%Y-%m-%d %H:%M:%S').unique().tolist()
+    query: str = ''
+    df: pd.DataFrame = pd.DataFrame()
+    df_full: pd.DataFrame = pd.DataFrame()
 
-    return date_strings
+    if factory == 'Belval':
+        query = "SELECT * FROM SCRAP_BLV;"
+
+    if factory == 'Differdange':
+        query = "SELECT * FROM SCRAP_DIFF;"
+
+    if not query == '':
+        # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
+        db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
+        engine = create_engine(db_url)
+        df_full: pd.DataFrame = pd.read_sql(query, engine)
+        df = df_full.copy()
+        engine.dispose()
+
+        df['flightday'] = pd.to_datetime(df['flightday'])
+        date_strings = df['flightday'].dt.strftime('%Y-%m-%d %H:%M:%S').unique().tolist()
+
+        return date_strings, df_full
+
+    return df, df_full
 
 
 def get_projects_with_tasks() -> list[dict[str, any]]:
