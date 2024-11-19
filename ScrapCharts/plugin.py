@@ -21,6 +21,10 @@ from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
 
 from PIL import Image
+from concurrent.futures import ThreadPoolExecutor
+
+
+executor = ThreadPoolExecutor(max_workers=4)
 
 
 def init_urls() -> None:
@@ -89,13 +93,30 @@ class Plugin(PluginBase):
 
         @login_required
         def get_flight_data(request):
+            """"
+            Get flight goes by the following pipeline:
+                get_data_from_db() using flight_day (specific_date) and factory in question
+                get_projects_with_tasks() gets all projects and tasks in webODM DB
+                get_project_id_from_task_id() will get the project_id of a task
+                convert_tif_to_png will() will run in background
+            """
+
             flight_day = request.GET.get("flightDay", "")
             factory = request.GET.get("factory", "")
 
-            db_data = get_data_from_db(flight_day, factory)
-            projects_tasks = get_projects_with_tasks()
-            project_id = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
-            orto_png = convert_tif_to_png(project_id, db_data['task_id'])
+            future_db_data = executor.submit(get_data_from_db, flight_day, factory)
+            future_projects_tasks = executor.submit(get_projects_with_tasks)
+
+            db_data = future_db_data.result()
+            projects_tasks = future_projects_tasks.result()
+
+            future_project_id = executor.submit(get_project_id_from_task_id, projects_tasks, db_data['task_id'])
+            project_id = future_project_id.result()
+
+            executor.submit(convert_tif_to_png, project_id, db_data['task_id'])
+
+            orto_png: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.png'
+            print(f"Completed: {orto_png}")
 
             return JsonResponse({"x_values": list(db_data['piles_array']),
                                  "y_values": list(db_data['volumes_array']),
@@ -121,7 +142,7 @@ class Plugin(PluginBase):
             ]
 
 
-def convert_tif_to_png(_project_id, _task_id) -> str:
+def convert_tif_to_png(_project_id, _task_id) -> None:
     """ convert tif to png to display upon request """
 
     tiff_path = os.path.join(settings.MEDIA_ROOT,
@@ -138,8 +159,6 @@ def convert_tif_to_png(_project_id, _task_id) -> str:
             print(f'Failed to convert TIFF to PNG: {str(e)}')
 
     _orto_png: str = f'/media/project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.png'
-
-    return _orto_png
 
 
 def get_user_group(request) -> list[bool]:
@@ -218,6 +237,8 @@ def get_all_flights(factory: str) -> tuple[pd.DataFrame, pd.DataFrame]:
 
 
 def get_projects_with_tasks() -> list[dict[str, any]]:
+    """ gets all projects/tasks available in webODM DB """
+
     projects_with_tasks = []
     all_projects = Project.objects.all()
 
@@ -232,6 +253,7 @@ def get_projects_with_tasks() -> list[dict[str, any]]:
 
 
 def get_project_id_from_task_id(_projects_tasks: list, _task_id: str) -> int:
+    """ gets the project id from a specific tasks available in webODM DB """
 
     for project_data in _projects_tasks:
         project = project_data['project']
