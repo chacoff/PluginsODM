@@ -57,15 +57,15 @@ class Plugin(PluginBase):
             groups: list[bool] = get_user_group(request)
             # TODO: sort factory list according users
 
-            fct: str = ''
+            factory_access: list[str] = []
             if groups[0]:  # isBelval
-                fct = "Belval"
+                factory_access = ['Belval']
             if groups[1]:  # isDiffer
-                fct = "Differdange"
+                factory_access = ['Differdange']
             if groups[2]:  # isGlobal
-                fct = "Belval"
+                factory_access = ['Belval', 'Differdange']
 
-            db_data = get_data_from_db(None, fct)
+            db_data = get_data_from_db(None, factory_access[0])
             label: str = "Volume [m³]"
             projects_tasks: list[dict[str, any]] = get_projects_with_tasks()
             project_id: int = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
@@ -86,7 +86,8 @@ class Plugin(PluginBase):
                 'isFirstOpen': True,
                 'isBelval': groups[0],
                 'isDiffer': groups[1],
-                'isGlobal': groups[2]
+                'isGlobal': groups[2],
+                'factory_access': factory_access
             }
 
             return render(request, self.template_path("volume_graphs.html"), template_args)

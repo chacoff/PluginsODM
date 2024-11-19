@@ -16,8 +16,9 @@
     <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Select source:</div>
     <div>
         <select class="form-control" id="factoryDropdown" onchange="updateFlightsDropdown()">
-            <option>Belval</option>
-            <option>Differdange</option>
+            {% for factory in factory_access %}
+            <option value="{{ factory }}">{{ factory }}</option>
+            {% endfor %}
         </select>
     </div>
     <div>
