@@ -113,7 +113,7 @@ class Plugin(PluginBase):
             future_project_id = executor.submit(get_project_id_from_task_id, projects_tasks, db_data['task_id'])
             project_id = future_project_id.result()
 
-            executor.submit(convert_tif_to_png, project_id, db_data['task_id'])
+            executor.submit(convert_tif_to_png, project_id, db_data['task_id'], 0.5, 'PNG')
 
             orto_png: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.png'
             print(f"Completed: {orto_png}")
@@ -142,8 +142,8 @@ class Plugin(PluginBase):
             ]
 
 
-def convert_tif_to_png(_project_id, _task_id) -> None:
-    """ convert tif to png to display upon request """
+def convert_tif_to_png(_project_id, _task_id, scale=0.5, _format='PNG') -> None:
+    """ convert tif to png """
 
     tiff_path = os.path.join(settings.MEDIA_ROOT,
                              f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
@@ -153,7 +153,10 @@ def convert_tif_to_png(_project_id, _task_id) -> None:
     if not os.path.exists(png_path):
         try:
             with Image.open(tiff_path) as img:
-                img.save(png_path, 'PNG')
+                new_width = int(img.width * scale)
+                new_height = int(img.height * scale)
+                resized_img = img.resize((new_width, new_height), Image.ANTIALIAS)
+                resized_img.save(png_path, _format, optimize=True)
                 print(f'{_task_id}: properly converted from TIFF to PNG')
         except Exception as e:
             print(f'Failed to convert TIFF to PNG: {str(e)}')
