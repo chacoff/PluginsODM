@@ -22,7 +22,7 @@ from app.plugins import PluginBase, Menu, MountPoint
 
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
-
+from .image_processing import pipeline, lookup
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -55,7 +55,6 @@ class Plugin(PluginBase):
         @login_required
         def volume_graphs(request):
             groups: list[bool] = get_user_group(request)
-            # TODO: sort factory list according users
 
             factory_access: list[str] = []
             if groups[0]:  # isBelval
@@ -114,17 +113,17 @@ class Plugin(PluginBase):
             future_project_id = executor.submit(get_project_id_from_task_id, projects_tasks, db_data['task_id'])
             project_id = future_project_id.result()
 
-            executor.submit(convert_tif_to_png, project_id, db_data['task_id'], 0.5, 'PNG')
+            executor.submit(convert_tif_to_jpg, project_id, db_data['task_id'], db_data['sector'])
 
-            orto_png: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.png'
-            print(f"Completed: {orto_png}")
+            orto_jpg: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.jpg'
+            print(f"Completed: {orto_jpg}")
 
             return JsonResponse({"x_values": list(db_data['piles_array']),
                                  "y_values": list(db_data['volumes_array']),
                                  "updated_at_values": list(db_data['updated_array']),
                                  "task_id": db_data['task_id'],
                                  "task_project_id": project_id,
-                                 "image_url": orto_png,
+                                 "image_url": orto_jpg,
                                  'isFirstOpen': False,
                                  'sector_place': db_data['place']})
 
@@ -143,26 +142,25 @@ class Plugin(PluginBase):
             ]
 
 
-def convert_tif_to_png(_project_id, _task_id, scale=0.5, _format='PNG') -> None:
-    """ convert tif to png """
+def convert_tif_to_jpg(_project_id, _task_id, sector) -> None:
+    """ convert tif to jpg with rotation, scaling and cropping """
 
     tiff_path = os.path.join(settings.MEDIA_ROOT,
                              f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
-    png_path = os.path.join(settings.MEDIA_ROOT,
-                            f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.png')
+    jpg_path = os.path.join(settings.MEDIA_ROOT,
+                            f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.jpg')
 
-    if not os.path.exists(png_path):
-        try:
-            with Image.open(tiff_path) as img:
-                new_width = int(img.width * scale)
-                new_height = int(img.height * scale)
-                resized_img = img.resize((new_width, new_height), Image.ANTIALIAS)
-                resized_img.save(png_path, _format, optimize=True)
-                print(f'{_task_id}: properly converted from TIFF to PNG')
-        except Exception as e:
-            print(f'Failed to convert TIFF to PNG: {str(e)}')
-
-    _orto_png: str = f'/media/project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.png'
+    if not os.path.exists(jpg_path):
+        output_image = pipeline(tiff_path,
+                                angle=lookup[sector]['angle'],
+                                crop_values=lookup[sector]['crop'],
+                                scaling=True,
+                                scale=lookup[sector]['scale'],
+                                rotate=True,
+                                crop=True,
+                                draw=False)
+        output_image = output_image.convert('RGB')
+        output_image.save(jpg_path, quality=80)
 
 
 def get_user_group(request) -> list[bool]:
@@ -187,7 +185,8 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
         'updated_array': [],
         'flight_days': flight_days,
         'task_id': 0,
-        'place': 'unknown'
+        'place': 'unknown',
+        'sector': 'unknown'
     }
 
     if not specific_date:
@@ -206,6 +205,7 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
     db_data['task_id'] = task_id[0]
     factory: list = df['factory'].unique().tolist()
     sector: list = df['sector'].unique().tolist()
+    db_data['sector'] = sector[0]
     db_data['place'] = f'{factory[0]} - {sector[0]}'
 
     return db_data
