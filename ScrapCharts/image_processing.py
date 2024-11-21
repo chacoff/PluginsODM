@@ -13,14 +13,19 @@ lookup: dict = {
             'angle': 18,
             'crop': (450, 460, 1380, 2000),
             'scale': 0.98
-        }
+        },
+        '501': {
+            'angle': 72,
+            'crop': (970, 1930, 5133, 2620),
+            'scale': 0.5
+        },
     }
 
 
 def straighten(image: Image, angle: int) -> Image:
     if not hasattr(Image, 'Resampling'):  # Pillow<9.0
         Image.Resampling = Image
-    return image.rotate(angle, resample=Image.Resampling.BICUBIC, expand=False, fillcolor=None)
+    return image.rotate(angle, resample=Image.Resampling.BICUBIC, expand=True, fillcolor=None)
 
 
 def cropping(image: Image, crop: tuple[int, int, int, int]) -> Image:
