@@ -227,6 +227,7 @@ def get_all_flights(factory: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     if not query == '':
         # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
         db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
+        # db_url = "postgresql+psycopg2://postgres:ArcelorT3ch*2024!?@host.docker.internal:5432/postgres"
         engine = create_engine(db_url)
         df_full: pd.DataFrame = pd.read_sql(query, engine)
         df = df_full.copy()
