@@ -4,22 +4,27 @@ from PIL import ImageFont
 
 
 lookup: dict = {
-        '401': {
-            'angle': 18,
-            'crop': (460, 750, 3750, 1500),
-            'scale': 0.5
-        },
-        'L4L1': {
-            'angle': 18,
-            'crop': (450, 460, 1380, 2000),
-            'scale': 0.98
-        },
-        '501': {
-            'angle': 72,
-            'crop': (970, 1930, 5133, 2620),
-            'scale': 0.5
-        },
+    '401': {
+        'angle': 18,
+        'crop': (460, 750, 3750, 1500),
+        'scale': 0.5
+    },
+    'L4L1': {
+        'angle': 18,
+        'crop': (450, 460, 1380, 2000),
+        'scale': 0.98
+    },
+    '501': {
+        'angle': 72,
+        'crop': (970, 1930, 5133, 2620),
+        'scale': 0.5
+    },
+    'unknown': {
+        'angle': 1,
+        'crop': (5, 5, 1500, 1500),
+        'scale': 0.9
     }
+}
 
 
 def straighten(image: Image, angle: int) -> Image:
