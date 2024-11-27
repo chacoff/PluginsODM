@@ -9,10 +9,18 @@
 <script src="./ChartColors.js"></script>
 
 <h2>{% trans 'Volume reports' %}</h2>
-{% if isDev %}
-<p><i class="fa fa-laptop-code"></i> developer options</p>
-{% endif %}
 <br />
+
+<!-- Modal -->
+<div class="modal" id="modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeModal()">×</button>
+        <h2>Parameters</h2>
+        <p>Perform operations here without leaving the main page.</p>
+        <input type="text" placeholder="Enter something..." style="width: 100%; padding: 8px; margin-top: 10px;">
+    </div>
+</div>
+<!-- Modal -->
 
 <!-- Dropbox menu -->
 <div style="display: flex; align-items: center; gap: 20px;">
@@ -37,6 +45,13 @@
             <i class="fa fa-file-csv"></i> {% trans "Export to CSV" %}
         </button>
     </div>
+    {% if isDev %}
+    <div>
+        <button type="button" class="btn btn-primary" onclick="openModal()">
+            <i class="fa fa-laptop-code"></i> Developer Options
+        </button>
+    </div>
+    {% endif %}
 </div>
 <!-- Dropbox menu -->
 
@@ -124,6 +139,46 @@
 </div>
 
 <style>
+/* Modal container styles */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      z-index: 600;
+    }
+
+    /* Modal content styles */
+    .modal-content {
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      width: 90%;
+      max-width: 500px;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+      text-align: center;
+    }
+
+    /* Close button */
+    .modal-close {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: transparent;
+      border: none;
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    /* Show modal when active */
+    .modal.active {
+      display: flex;
+    }
+
     #pilesInfo {
             margin: 0; /* Align container to the left */
             padding: 10px;
@@ -402,6 +457,14 @@
             minute: '2-digit'
         };
         return date.toLocaleDateString('en-US', options).replace('at', 'at');
+    }
+
+    function openModal() {
+      document.getElementById('modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('modal').classList.remove('active');
     }
 </script>
 {% endblock %}

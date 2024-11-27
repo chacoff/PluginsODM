@@ -7,7 +7,7 @@
 #
 
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
 import os
 
 from django.contrib.auth.decorators import login_required
@@ -144,6 +144,9 @@ class Plugin(PluginBase):
 
 def convert_tif_to_jpg(_project_id, _task_id, sector) -> None:
     """ convert tif to jpg with rotation, scaling and cropping """
+
+    test = get_lookup_table()
+    print(test)
 
     tiff_path = os.path.join(settings.MEDIA_ROOT,
                              f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
@@ -293,4 +296,28 @@ def get_project_id_from_task_id(_projects_tasks: list, _task_id: str) -> int:
                 return project_id
 
     return 0
+
+
+def get_lookup_table() -> dict:
+    _lookup = {}
+
+    db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
+    engine = create_engine(db_url)
+
+    with engine.connect() as connection:
+        result = connection.execute(text("""
+            SELECT sector, angle, crop_left, crop_top, crop_right, crop_bottom, scale 
+            FROM SCRAP_PARAMS
+        """))
+
+        for row in result:
+            sector, angle, crop_left, crop_top, crop_right, crop_bottom, scale = row
+            _lookup[sector] = {
+                'angle': angle,
+                'crop': (crop_left, crop_top, crop_right, crop_bottom),
+                'scale': scale
+            }
+
+    return _lookup
+
 
