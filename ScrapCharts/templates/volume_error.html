@@ -1,0 +1,23 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<link rel="stylesheet" href="./venobox.min.css" type="text/css" media="screen" />
+<script type="text/javascript" src="./venobox.min.js"></script>
+<script src="./Chart.min.js"></script>
+<script src="./ChartColors.js"></script>
+
+<h2>{% trans 'Volume reports' %}</h2>
+{% if isDev %}
+<p><i class="fa fa-laptop-code"></i> developer options</p>
+{% endif %}
+<br />
+
+<!-- Content error template -->
+<p class="alert alert-warning">
+    {{ error }}
+</p>
+<!-- Content error template -->
+
+{% endblock %}

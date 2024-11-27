@@ -44,7 +44,7 @@ def init_urls() -> None:
 class Plugin(PluginBase):
 
     def main_menu(self):
-        return [Menu("Reports", self.public_url(""), "fa fa-chart-line fa-fw")]
+        return [Menu("Reports", self.public_url(""), "fa fa-industry fa-fw")]
 
     def include_js_files(self):
         return ['Chart.min.js']
@@ -55,16 +55,15 @@ class Plugin(PluginBase):
         @login_required
         def volume_graphs(request):
             groups: list[bool] = get_user_group(request)
+            factory_access = get_factory_access(groups)
 
-            factory_access: list[str] = []
-            if groups[0]:  # isBelval
-                factory_access = ['Belval']
-            if groups[1]:  # isDiffer
-                factory_access = ['Differdange']
-            if groups[2]:  # isGlobal
-                factory_access = ['Belval', 'Differdange']
+            if not factory_access:
+                print(f'Error getting data from db. Factory Access: {factory_access}. Most likely is empty.')
+                args = {'error': 'Factory access is unknown. Most likely user does not belong to any group.'}
+                return render(request, self.template_path("volume_error.html"), args)
 
             db_data = get_data_from_db(None, factory_access[0])
+
             label: str = "Volume [m³]"
             projects_tasks: list[dict[str, any]] = get_projects_with_tasks()
             project_id: int = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
@@ -86,6 +85,7 @@ class Plugin(PluginBase):
                 'isBelval': groups[0],
                 'isDiffer': groups[1],
                 'isGlobal': groups[2],
+                'isDev': groups[3],
                 'factory_access': factory_access
             }
 
@@ -163,6 +163,23 @@ def convert_tif_to_jpg(_project_id, _task_id, sector) -> None:
         output_image.save(jpg_path, quality=80)
 
 
+def get_factory_access(groups: list[bool]) -> list[str]:
+    """" gets factory access according the user """
+
+    factory_access: list[str] = []
+
+    if groups[0]:  # isBelval
+        factory_access = ['Belval']
+
+    if groups[1]:  # isDiffer
+        factory_access = ['Differdange']
+
+    if groups[2] or groups[3]:  # isGlobal or isDev
+        factory_access = ['Belval', 'Differdange']
+
+    return factory_access
+
+
 def get_user_group(request) -> list[bool]:
     """ gets user group of every user in database """
 
@@ -170,12 +187,16 @@ def get_user_group(request) -> list[bool]:
     is_belval: bool = request.user.groups.filter(name='Belval').exists()
     is_differ: bool = request.user.groups.filter(name='Differdange').exists()
     is_global: bool = request.user.groups.filter(name='Global').exists()
+    is_dev: bool = request.user.groups.filter(name='Dev').exists()
 
-    return [is_belval, is_differ, is_global]
+    return [is_belval, is_differ, is_global, is_dev]
 
 
 def get_data_from_db(specific_date=None, factory='') -> dict:
     """ gets all data from the DB and returns a dataframe with it based on flightday = specific_date"""
+
+    if factory == '':
+        return {'error': 'factory is unknown.'}
 
     flight_days, df = get_all_flights(factory)  # all flights from a factory and all full dataset
 
