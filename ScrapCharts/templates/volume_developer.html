@@ -11,16 +11,126 @@
 <h2>{% trans 'Volume reports: developer' %}</h2>
 <br />
 
-<!-- Content error template -->
+<!-- Content template -->
 {% if isDev %}
-<p>
-    Welcome <b>{{ current_user }}</b>, you are in developer options. <br />
-    Are you a developer: {{ isDev }} <br />
-    Do you belong to Belval: {{ isBelval }} <br />
-    Do you belong to Differdange: {{ isDiffer }} <br />
-    Are you a global user: {{ isGlobal }}
-</p>
+<p>Welcome <b>{{ current_user }}</b>, you are in developer options. <br /></p>
+
+<table>
+    <thead>
+    <tr>
+        <th>Counter</th>
+        <th>Sector</th>
+        <th>Angle</th>
+        <th>Crop Left</th>
+        <th>Crop Top</th>
+        <th>Crop Right</th>
+        <th>Crop Bottom</th>
+        <th>Scale</th>
+        <th>Quality</th>
+        <th>Reviewer</th>
+        <th>Updated At</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    {% for row in df.data %}
+    <tr>
+        <td>{{ row.0 }}</td>
+        <td><input type="text" name="sector_{{ row.0 }}" value="{{ row.1 }}" maxlength="20" required
+                   class="form-control"></td>
+        <td><input type="number" name="angle_{{ row.0 }}" value="{{ row.2 }}" step="1" class="form-control"></td>
+        <td><input type="number" name="crop_left_{{ row.0 }}" value="{{ row.3 }}" step="1" class="form-control"></td>
+        <td><input type="number" name="crop_top_{{ row.0 }}" value="{{ row.4 }}" step="1" class="form-control"></td>
+        <td><input type="number" name="crop_right_{{ row.0 }}" value="{{ row.5 }}" step="1" class="form-control"></td>
+        <td><input type="number" name="crop_bottom_{{ row.0 }}" value="{{ row.6 }}" step="1" class="form-control"></td>
+        <td><input type="number" name="scale_{{ row.0 }}" value="{{ row.7 }}" step="0.01" min="0" max="1" required
+                   class="form-control"></td>
+        <td><input type="number" name="quality_{{ row.0 }}" value="{{ row.8 }}" step="1" min="0" max="100"
+                   class="form-control"></td>
+        <td><input type="text" name="reviewer_{{ row.0 }}" value="{{ row.9 }}" maxlength="40" class="form-control"></td>
+        <td><input type="datetime-local" name="updated_at_{{ row.0 }}" value="{{ row.10|date:" Y-m-d\TH:i:s" }}"
+            class="form-control">
+        </td>
+        <td>
+            <button type="submit" name="action" value="update_{{ row.0 }}" class="btn btn-default">Update</button>
+            <button type="submit" name="action" value="delete_{{ row.0 }}" class="btn btn-default">Delete</button>
+        </td>
+    </tr>
+    {% endfor %}
+    </tbody>
+</table>
+<div class="add-row">
+    <h3>Add New Row:</h3>
+    <table>
+        <thead>
+        <tr>
+            <th>Sector</th>
+            <th>Angle</th>
+            <th>Crop Left</th>
+            <th>Crop Top</th>
+            <th>Crop Right</th>
+            <th>Crop Bottom</th>
+            <th>Scale</th>
+            <th>Quality</th>
+            <th>Reviewer</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr>
+            <td><input type="text" name="new_sector" maxlength="20" required class="form-control"></td>
+            <td><input type="number" name="new_angle" step="1" class="form-control"></td>
+            <td><input type="number" name="new_crop_left" step="1" class="form-control"></td>
+            <td><input type="number" name="new_crop_top" step="1" class="form-control"></td>
+            <td><input type="number" name="new_crop_right" step="1" class="form-control"></td>
+            <td><input type="number" name="new_crop_bottom" step="1" class="form-control"></td>
+            <td><input type="number" name="new_scale" step="0.01" min="0" max="1" required class="form-control"></td>
+            <td><input type="number" name="new_quality" step="1" min="0" max="100" class="form-control"></td>
+            <td><input type="text" name="new_reviewer" maxlength="40" class="form-control"></td>
+        </tr>
+        </tbody>
+    </table>
+    <button type="submit" name="action" value="add" class="btn btn-default">Add Row</button>
+</div>
+
+<style>
+    table {
+        width: 95%;
+        border-collapse: collapse;
+        margin: 16px 0;
+        font-size: 13px;
+        text-align: left;
+    }
+
+    table th, table td {
+        border: 1px solid #ddd;
+        padding: 4px;
+    }
+
+    table th {
+        background-color: #f4f4f4;
+        font-weight: bold;
+    }
+
+    table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+
+    table tr:hover {
+        background-color: #f1f1f1;
+    }
+
+    input[type="text"], input[type="number"] {
+        width: 90%;
+        padding: 5px;
+        margin: 2px 0;
+    }
+
+    .add-row {
+        margin-top: 20px;
+    }
+</style>
+
 {% endif %}
-<!-- Content error template -->
+<!-- Content template -->
 
 {% endblock %}

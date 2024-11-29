@@ -18,6 +18,7 @@ from .webodm_access import (get_factory_access,
                             get_projects_with_tasks,
                             get_project_id_from_task_id,
                             get_lookup_table)
+from .volumes_db import scrap_params_dev
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -137,12 +138,17 @@ class Plugin(PluginBase):
 
             print(f'Entering dev mode with user: {request.user}')
 
+            df = scrap_params_dev(request)
+            print(df)
+
             args: dict = {
                 'current_user': request.user,
                 'isBelval': groups[0],
                 'isDiffer': groups[1],
                 'isGlobal': groups[2],
-                'isDev': groups[3]}
+                'isDev': groups[3],
+                'df': df
+            }
 
             return render(request, self.template_path("volume_developer.html"), args)
 
