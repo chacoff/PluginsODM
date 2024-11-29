@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 set "SOURCE_FOLDER=%~dp0"
 set "TEMP_FOLDER=C:\TempCopy"
-set "WSL_DEST=/mnt/docker-desktop-disk/data/docker/volumes/webdronesodm_appmedia/_data/plugins/ScrapCharts"
+set "WSL_DEST=/mnt/docker-desktop-disk/data/docker/volumes/webodm_appmedia/_data/plugins/ScrapCharts"
 
 if exist "!TEMP_FOLDER!" rmdir /S /Q "!TEMP_FOLDER!"
 mkdir "!TEMP_FOLDER!"

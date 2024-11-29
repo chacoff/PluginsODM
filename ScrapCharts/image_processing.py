@@ -3,7 +3,7 @@ from PIL import ImageDraw
 from PIL import ImageFont
 
 
-lookup: dict = {
+_lookup: dict = {
     '401': {
         'angle': 18,
         'crop': (460, 750, 3750, 1500),

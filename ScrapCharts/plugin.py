@@ -22,7 +22,7 @@ from app.plugins import PluginBase, Menu, MountPoint
 
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
-from .image_processing import pipeline, lookup
+from .image_processing import pipeline
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -145,8 +145,7 @@ class Plugin(PluginBase):
 def convert_tif_to_jpg(_project_id, _task_id, sector) -> None:
     """ convert tif to jpg with rotation, scaling and cropping """
 
-    test = get_lookup_table()
-    print(test)
+    lookup = get_lookup_table()
 
     tiff_path = os.path.join(settings.MEDIA_ROOT,
                              f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
