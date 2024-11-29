@@ -160,11 +160,11 @@ class Plugin(PluginBase):
                 try:
                     data = json.loads(request.body)
                     print(data)
-                    return JsonResponse({"status": "successfully updated the DB"})
+                    return JsonResponse({'status': 'successfully updated the DB'})
                 except json.JSONDecodeError:
-                    return JsonResponse({"error": "Invalid JSON data"}, status=400)
+                    return JsonResponse({'error': 'Invalid JSON data'}, status=400)
             else:
-                return JsonResponse({"error": "Invalid request method"}, status=405)
+                return JsonResponse({'error': 'Invalid request method'}, status=405)
 
         return [
             MountPoint('$', volume_graphs), 

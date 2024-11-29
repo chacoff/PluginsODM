@@ -52,6 +52,9 @@
     <button type="button" class="btn btn-default" onClick="appendRow()">Add Row</button>
     <button type="submit" class="btn btn-default" onclick="UpdateTableData()">Update</button>
 </div>
+<br />
+
+<div id="status-message"></div>
 <!-- Content dev template -->
 
 <style>
@@ -145,7 +148,6 @@
             data.push(rowData);
         });
 
-        console.log(data)
         return data;
     }
 
@@ -160,19 +162,31 @@
                 "X-CSRFToken": csrfToken
             },
             body: JSON.stringify(data)
-        })
-        .then((response) => {
+        }).then((response) => {
             if (response.ok) {
                 return response.json();
             } else {
-                throw new Error("Failed to submit data");
+                throw new Error(`HTTP error! Status: ${response.status}`);
             }
-        })
-        .then((result) => {
-            console.log("Data submitted successfully:", result);
-        })
-        .catch((error) => {
+        }).then((result) => {
+            console.log("Backend response:", result);
+            const statusDiv = document.getElementById("status-message");
+            statusDiv.innerText = result.status;
+            statusDiv.style.color = "green";
+
+            setTimeout(() => {
+                statusDiv.innerText = "";
+            }, 3000); // 3 s
+
+        }).catch((error) => {
             console.error("Error:", error);
+            const statusDiv = document.getElementById("status-message");
+            statusDiv.innerText = "Error: " + error.message;
+            statusDiv.style.color = "red";
+
+            setTimeout(() => {
+                statusDiv.innerText = "";
+            }, 6000); // 6 s
         });
     }
 
@@ -185,6 +199,7 @@
         }
         return "";
     }
+
 </script>
 
 {% endif %}
