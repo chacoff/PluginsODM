@@ -11,17 +11,6 @@
 <h2>{% trans 'Volume reports' %}</h2>
 <br />
 
-<!-- Modal -->
-<div class="modal" id="modal">
-    <div class="modal-content">
-        <button class="modal-close" onclick="closeModal()">×</button>
-        <h2>Parameters</h2>
-        <p>Perform operations here without leaving the main page.</p>
-        <input type="text" placeholder="Enter something..." style="width: 100%; padding: 8px; margin-top: 10px;">
-    </div>
-</div>
-<!-- Modal -->
-
 <!-- Dropbox menu -->
 <div style="display: flex; align-items: center; gap: 20px;">
     <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Select source:</div>
@@ -47,7 +36,7 @@
     </div>
     {% if isDev %}
     <div>
-        <button type="button" class="btn btn-primary" onclick="openModal()">
+        <button type="button" class="btn btn-primary" onclick="openDevMode()">
             <i class="fa fa-laptop-code"></i> Developer Options
         </button>
     </div>
@@ -459,12 +448,25 @@
         return date.toLocaleDateString('en-US', options).replace('at', 'at');
     }
 
-    function openModal() {
-      document.getElementById('modal').classList.add('active');
+    function openDevMode() {
+        fetch('/plugins/ScrapCharts/dev_mode/', {
+            method: 'GET', // Use GET if no data is being sent; otherwise, use POST
+        })
+                .then(response => {
+                    if (response.ok) {
+                        return response.text(); // Receive the rendered HTML as text
+                    }
+                    throw new Error('Network response was not ok');
+                })
+                .then(html => {
+                    document.open(); // Replace the current page content
+                    document.write(html);
+                    document.close();
+                })
+                .catch(error => {
+                    console.error('Error fetching new page:', error);
+                });
     }
 
-    function closeModal() {
-      document.getElementById('modal').classList.remove('active');
-    }
 </script>
 {% endblock %}

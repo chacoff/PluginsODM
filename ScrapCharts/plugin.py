@@ -131,8 +131,24 @@ class Plugin(PluginBase):
 
             return JsonResponse({"flightList": db_data['flight_days']})
 
+        @login_required
+        def dev_mode(request):
+            groups: list[bool] = get_user_group(request)
+
+            print(f'Entering dev mode with user: {request.user}')
+
+            args: dict = {
+                'current_user': request.user,
+                'isBelval': groups[0],
+                'isDiffer': groups[1],
+                'isGlobal': groups[2],
+                'isDev': groups[3]}
+
+            return render(request, self.template_path("volume_developer.html"), args)
+
         return [
             MountPoint('$', volume_graphs), 
             MountPoint('get_flight_data', get_flight_data),
-            MountPoint('get_factory_flights', get_factory_flights)
+            MountPoint('get_factory_flights', get_factory_flights),
+            MountPoint('dev_mode', dev_mode)
             ]

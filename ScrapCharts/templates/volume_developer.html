@@ -8,13 +8,19 @@
 <script src="./Chart.min.js"></script>
 <script src="./ChartColors.js"></script>
 
-<h2>{% trans 'Volume reports' %}</h2>
+<h2>{% trans 'Volume reports: developer' %}</h2>
 <br />
 
 <!-- Content error template -->
-<p class="alert alert-warning">
-    {{ error }}
+{% if isDev %}
+<p>
+    Welcome <b>{{ current_user }}</b>, you are in developer options. <br />
+    Are you a developer: {{ isDev }} <br />
+    Do you belong to Belval: {{ isBelval }} <br />
+    Do you belong to Differdange: {{ isDiffer }} <br />
+    Are you a global user: {{ isGlobal }}
 </p>
+{% endif %}
 <!-- Content error template -->
 
 {% endblock %}
