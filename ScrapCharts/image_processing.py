@@ -1,3 +1,4 @@
+import os
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -87,3 +88,22 @@ def pipeline(input_path: str,
                 print(f'Draw error: {e}')
 
     return result_image
+
+
+def convert_tif_to_jpg(_media, _project_id, _task_id, sector, lookup) -> None:
+    """ convert tif to jpg with rotation, scaling and cropping """
+
+    tiff_path = os.path.join(_media, f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
+    jpg_path = os.path.join(_media, f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.jpg')
+
+    if not os.path.exists(jpg_path):
+        output_image = pipeline(tiff_path,
+                                angle=lookup[sector]['angle'] if sector in lookup else lookup['unknown']['angle'],
+                                crop_values=lookup[sector]['crop'] if sector in lookup else lookup['unknown']['crop'],
+                                scaling=True if sector in lookup else False,
+                                scale=lookup[sector]['scale'] if sector in lookup else lookup['unknown']['scale'],
+                                rotate=True if sector in lookup else False,
+                                crop=True if sector in lookup else False,
+                                draw=False)
+        output_image = output_image.convert('RGB')
+        output_image.save(jpg_path, quality=80)

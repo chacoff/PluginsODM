@@ -22,7 +22,7 @@ from app.plugins import PluginBase, Menu, MountPoint
 
 from PIL import Image
 from concurrent.futures import ThreadPoolExecutor
-from .image_processing import pipeline
+from .image_processing import convert_tif_to_jpg
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -103,6 +103,8 @@ class Plugin(PluginBase):
 
             flight_day = request.GET.get("flightDay", "")
             factory = request.GET.get("factory", "")
+            lookup: dict = get_lookup_table()
+            media_root = settings.MEDIA_ROOT
 
             future_db_data = executor.submit(get_data_from_db, flight_day, factory)
             future_projects_tasks = executor.submit(get_projects_with_tasks)
@@ -113,7 +115,7 @@ class Plugin(PluginBase):
             future_project_id = executor.submit(get_project_id_from_task_id, projects_tasks, db_data['task_id'])
             project_id = future_project_id.result()
 
-            executor.submit(convert_tif_to_jpg, project_id, db_data['task_id'], db_data['sector'])
+            executor.submit(convert_tif_to_jpg, media_root, project_id, db_data['task_id'], db_data['sector'], lookup)
 
             orto_jpg: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.jpg'
             print(f"Completed: {orto_jpg}")
@@ -140,29 +142,6 @@ class Plugin(PluginBase):
             MountPoint('get_flight_data', get_flight_data),
             MountPoint('get_factory_flights', get_factory_flights)
             ]
-
-
-def convert_tif_to_jpg(_project_id, _task_id, sector) -> None:
-    """ convert tif to jpg with rotation, scaling and cropping """
-
-    lookup = get_lookup_table()
-
-    tiff_path = os.path.join(settings.MEDIA_ROOT,
-                             f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
-    jpg_path = os.path.join(settings.MEDIA_ROOT,
-                            f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.jpg')
-
-    if not os.path.exists(jpg_path):
-        output_image = pipeline(tiff_path,
-                                angle=lookup[sector]['angle'] if sector in lookup else lookup['unknown']['angle'],
-                                crop_values=lookup[sector]['crop'] if sector in lookup else lookup['unknown']['crop'],
-                                scaling=True if sector in lookup else False,
-                                scale=lookup[sector]['scale'] if sector in lookup else lookup['unknown']['scale'],
-                                rotate=True if sector in lookup else False,
-                                crop=True if sector in lookup else False,
-                                draw=False)
-        output_image = output_image.convert('RGB')
-        output_image.save(jpg_path, quality=80)
 
 
 def get_factory_access(groups: list[bool]) -> list[str]:
