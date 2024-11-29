@@ -12,6 +12,12 @@ def scrap_params_dev(request):
     df = pd.read_sql("SELECT * FROM SCRAP_PARAMS;", con=engine)
     engine.dispose()
 
+    df['updated_at'] = df['updated_at'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+
+    return df.to_dict(orient="split")  # records might be better
+
+
+def other_methods(request):
     if request.method == "POST":
         action = request.POST.get("action")
 
@@ -45,8 +51,3 @@ def scrap_params_dev(request):
             with engine.connect() as conn:
                 conn.execute(query, tuple(new_row))
             engine.dispose()
-
-        # return HttpResponseRedirect(request.path)
-
-    return df.to_dict(orient="split")
-    # return render(request, "scrap_params.html", {"df": df.to_dict(orient="split")})
