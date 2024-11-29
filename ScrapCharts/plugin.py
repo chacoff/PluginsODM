@@ -101,10 +101,10 @@ class Plugin(PluginBase):
                 convert_tif_to_png will() will run in background
             """
 
-            flight_day = request.GET.get("flightDay", "")
-            factory = request.GET.get("factory", "")
+            flight_day: request = request.GET.get("flightDay", "")
+            factory: request = request.GET.get("factory", "")
             lookup: dict = get_lookup_table()
-            media_root = settings.MEDIA_ROOT
+            media_root: str = settings.MEDIA_ROOT
 
             future_db_data = executor.submit(get_data_from_db, flight_day, factory)
             future_projects_tasks = executor.submit(get_projects_with_tasks)
