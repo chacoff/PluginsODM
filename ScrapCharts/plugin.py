@@ -10,6 +10,7 @@ from django.views.static import serve
 from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
 
+import json
 from concurrent.futures import ThreadPoolExecutor
 from .image_processing import convert_tif_to_jpg
 from .webodm_access import (get_factory_access,
@@ -90,11 +91,11 @@ class Plugin(PluginBase):
         @login_required
         def get_flight_data(request):
             """"
-            Get flight goes by the following pipeline:
-                get_data_from_db() using flight_day (specific_date) and factory in question
-                get_projects_with_tasks() gets all projects and tasks in webODM DB
-                get_project_id_from_task_id() will get the project_id of a task
-                convert_tif_to_png will() will run in background
+            gets the data for a specific flight using the following pipeline:
+                1. get_data_from_db() using flight_day (specific_date) and factory in question
+                2. get_projects_with_tasks() gets all projects and tasks in webODM DB
+                3. get_project_id_from_task_id() will get the project_id of a task
+                4. convert_tif_to_png() will run in background
             """
 
             flight_day: request = request.GET.get("flightDay", "")
@@ -126,6 +127,8 @@ class Plugin(PluginBase):
 
         @login_required
         def get_factory_flights(request):
+            """ gets all the available flights in the volumes database"""
+
             factory = request.GET.get("factory", "")
 
             db_data = get_data_from_db(None, factory)
@@ -134,12 +137,11 @@ class Plugin(PluginBase):
 
         @login_required
         def dev_mode(request):
+            """ renders page with the options for developer, i.e., parameters for orthomosaic """
+
             groups: list[bool] = get_user_group(request)
 
-            print(f'Entering dev mode with user: {request.user}')
-
             df = scrap_params_dev(request)
-            print(df)
 
             args: dict = {
                 'current_user': request.user,
@@ -152,9 +154,22 @@ class Plugin(PluginBase):
 
             return render(request, self.template_path("volume_developer.html"), args)
 
+        @login_required()
+        def update_dev_db(request):
+            if request.method == "POST":
+                try:
+                    data = json.loads(request.body)
+                    print(data)
+                    return JsonResponse({"status": "successfully updated the DB"})
+                except json.JSONDecodeError:
+                    return JsonResponse({"error": "Invalid JSON data"}, status=400)
+            else:
+                return JsonResponse({"error": "Invalid request method"}, status=405)
+
         return [
             MountPoint('$', volume_graphs), 
             MountPoint('get_flight_data', get_flight_data),
             MountPoint('get_factory_flights', get_factory_flights),
-            MountPoint('dev_mode', dev_mode)
+            MountPoint('dev_mode', dev_mode),
+            MountPoint('update_dev_db', update_dev_db)
             ]

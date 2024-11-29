@@ -3,17 +3,14 @@
 
 {% block content %}
 
-<link rel="stylesheet" href="./venobox.min.css" type="text/css" media="screen" />
-<script type="text/javascript" src="./venobox.min.js"></script>
-<script src="./Chart.min.js"></script>
-<script src="./ChartColors.js"></script>
-
 <h2>{% trans 'Volume reports: developer' %}</h2>
 <br />
 
-<!-- Content template -->
+<!-- Content dev template -->
 {% if isDev %}
 <p>Hej, <b>{{ current_user }}</b>, you are in developer options. <br /> Modify here the parameters for orthomosaic re-scaling.</p>
+
+{% csrf_token %}
 
 <div class="add-row">
     <table id="data-table">
@@ -53,8 +50,9 @@
         </tbody>
     </table>
     <button type="button" class="btn btn-default" onClick="appendRow()">Add Row</button>
-    <button type="submit" class="btn btn-default">Update</button>
+    <button type="submit" class="btn btn-default" onclick="UpdateTableData()">Update</button>
 </div>
+<!-- Content dev template -->
 
 <style>
     table {
@@ -89,9 +87,16 @@
 </style>
 
 <script>
+    let rowCount = 0;
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const tableBody = document.querySelector("#data-table tbody");
+        rowCount = tableBody.rows.length;
+    });
+
     function appendRow() {
         const tableBody = document.querySelector("#data-table tbody");
-        const rowCount = tableBody.rows.length + 1;
+        rowCount += 1;
 
         const newRow = `
         <tr>
@@ -116,9 +121,72 @@
             const row = button.closest("tr");
             row.remove();
         }
+
+    function getTableData() {
+        const table = document.getElementById("data-table");
+        const rows = table.querySelectorAll("tbody tr");
+        const data = [];
+
+        rows.forEach((row) => {
+            const cells = row.querySelectorAll("td");
+            const rowData = {
+                counter: parseInt(cells[0].textContent.trim(), 10) || null,
+                sector: cells[1].querySelector("input").value.trim(),
+                angle: parseInt(cells[2].querySelector("input").value.trim(), 10) || null,
+                crop_left: parseInt(cells[3].querySelector("input").value.trim(), 10) || null,
+                crop_top: parseInt(cells[4].querySelector("input").value.trim(), 10) || null,
+                crop_right: parseInt(cells[5].querySelector("input").value.trim(), 10) || null,
+                crop_bottom: parseInt(cells[6].querySelector("input").value.trim(), 10) || null,
+                scale: parseFloat(cells[7].querySelector("input").value.trim()) || null,
+                quality: parseInt(cells[8].querySelector("input").value.trim(), 10) || null,
+                reviewer: cells[9].querySelector("input").value.trim(),
+                updated_at: cells[10].querySelector("input").value.trim()
+            };
+            data.push(rowData);
+        });
+
+        console.log(data)
+        return data;
+    }
+
+    function UpdateTableData() {
+        const data = getTableData();
+        const csrfToken = getCSRFToken();
+
+        fetch("/plugins/ScrapCharts/update_dev_db/", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify(data)
+        })
+        .then((response) => {
+            if (response.ok) {
+                return response.json();
+            } else {
+                throw new Error("Failed to submit data");
+            }
+        })
+        .then((result) => {
+            console.log("Data submitted successfully:", result);
+        })
+        .catch((error) => {
+            console.error("Error:", error);
+        });
+    }
+
+    function getCSRFToken() {
+        const cookies = document.cookie.split("; ");
+        for (let cookie of cookies) {
+            if (cookie.startsWith("csrftoken=")) {
+                return cookie.split("=")[1];
+            }
+        }
+        return "";
+    }
 </script>
 
 {% endif %}
-<!-- Content template -->
 
 {% endblock %}
