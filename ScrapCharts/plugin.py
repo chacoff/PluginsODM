@@ -19,7 +19,7 @@ from .webodm_access import (get_factory_access,
                             get_projects_with_tasks,
                             get_project_id_from_task_id,
                             get_lookup_table)
-from .volumes_db import scrap_params_dev
+from .volumes_db import get_scrap_params, insert_to_scrap_params
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -141,7 +141,7 @@ class Plugin(PluginBase):
 
             groups: list[bool] = get_user_group(request)
 
-            df = scrap_params_dev(request)
+            df = get_scrap_params(request)
 
             args: dict = {
                 'current_user': request.user,
@@ -158,8 +158,8 @@ class Plugin(PluginBase):
         def update_dev_db(request):
             if request.method == "POST":
                 try:
-                    data = json.loads(request.body)
-                    print(data)
+                    data: list[dict[any]] = json.loads(request.body)
+                    insert_to_scrap_params(data)
                     return JsonResponse({'status': 'successfully updated the DB'})
                 except json.JSONDecodeError:
                     return JsonResponse({'error': 'Invalid JSON data'}, status=400)

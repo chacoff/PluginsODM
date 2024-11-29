@@ -9,5 +9,6 @@ CREATE TABLE public.SCRAP_PARAMS (
     scale FLOAT,
     quality INTEGER,
     reviewer VARCHAR(40),
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE (sector)
 );

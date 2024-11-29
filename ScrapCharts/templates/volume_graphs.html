@@ -450,16 +450,16 @@
 
     function openDevMode() {
         fetch('/plugins/ScrapCharts/dev_mode/', {
-            method: 'GET', // Use GET if no data is being sent; otherwise, use POST
+            method: 'GET', // GET if no data is being sent; otherwise, POST
         })
                 .then(response => {
                     if (response.ok) {
-                        return response.text(); // Receive the rendered HTML as text
+                        return response.text();
                     }
                     throw new Error('Network response was not ok');
                 })
                 .then(html => {
-                    document.open(); // Replace the current page content
+                    document.open();
                     document.write(html);
                     document.close();
                 })
