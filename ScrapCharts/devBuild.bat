@@ -20,6 +20,7 @@ rem copy "!SOURCE_FOLDER!__init__.py" "!TEMP_FOLDER!\"
 rem copy "!SOURCE_FOLDER!manifest.json" "!TEMP_FOLDER!\"
 copy "!SOURCE_FOLDER!plugin.py" "!TEMP_FOLDER!\"
 copy "!SOURCE_FOLDER!image_processing.py" "!TEMP_FOLDER!\"
+copy "!SOURCE_FOLDER!webodm_access.py" "!TEMP_FOLDER!\"
 
 wsl -d docker-desktop cp -rf /mnt/host/c/TempCopy/* "!WSL_DEST!/"
 rmdir /S /Q "!TEMP_FOLDER!"

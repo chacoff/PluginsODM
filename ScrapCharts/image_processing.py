@@ -69,6 +69,9 @@ def pipeline(input_path: str,
 def convert_tif_to_jpg(_media, _project_id, _task_id, sector, lookup) -> None:
     """ convert tif to jpg with rotation, scaling and cropping """
 
+    tag: str = sector if sector in lookup else 'unknown'
+    print(f'Image processing parameters for {tag}: {lookup[tag]}')
+
     tiff_path = os.path.join(_media, f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.tif')
     jpg_path = os.path.join(_media, f'project/{_project_id}/task/{_task_id}/assets/odm_orthophoto/odm_orthophoto.jpg')
 
@@ -82,4 +85,4 @@ def convert_tif_to_jpg(_media, _project_id, _task_id, sector, lookup) -> None:
                                 crop=True if sector in lookup else False,
                                 draw=False)
         output_image = output_image.convert('RGB')
-        output_image.save(jpg_path, quality=80)
+        output_image.save(jpg_path, quality=lookup[sector]['quality'] if sector in lookup else 80)
