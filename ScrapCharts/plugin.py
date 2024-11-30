@@ -177,7 +177,7 @@ class Plugin(PluginBase):
                     result = delete_scrap_param_row(sector)
 
                     if result.rowcount > 0:
-                        return JsonResponse({'success': True, 'message': f'Sector {sector} deleted successfully'})
+                        return JsonResponse({'success': True, 'status': f'Sector {sector} deleted successfully'})
                     else:
                         return JsonResponse({'success': False, 'error': 'No matching sector found'}, status=404)
 
