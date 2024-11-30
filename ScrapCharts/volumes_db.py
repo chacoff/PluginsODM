@@ -72,10 +72,9 @@ def insert_to_scrap_params(data: list[any]) -> None:
                             "scale": d_values[6],
                             "quality": d_values[7],
                             "reviewer": d_values[8],
-                            "updated_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                            "updated_at": d_values[9]  # datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         }
                     )
-                    print(f'Successfully processed record {i}')
                 except Exception as inner_e:
                     print(f'Error processing record {i}: {inner_e}')
 
