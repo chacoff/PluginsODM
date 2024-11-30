@@ -1,12 +1,12 @@
 import pandas as pd
-from sqlalchemy import create_engine, text
+from sqlalchemy import create_engine, text, CursorResult
 from datetime import datetime
 
 # host.docker.internal
 db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
 
 
-def get_scrap_params(request):
+def get_scrap_params(request) -> dict:
     """ gets all the parameters from scrap_params table """
 
     engine = create_engine(db_url)
@@ -18,7 +18,7 @@ def get_scrap_params(request):
     return df.to_dict(orient="split")  # records might be better
 
 
-def insert_to_scrap_params(data: list[any]):
+def insert_to_scrap_params(data: list[any]) -> None:
     """ Insert or update scrap parameters in the database """
 
     engine = create_engine(db_url)
@@ -26,8 +26,7 @@ def insert_to_scrap_params(data: list[any]):
     try:
         with engine.begin() as connection:
             for i, d in enumerate(data, 1):
-                # Remove the first item, it is the counter.
-                d_values = list(d.values())[1:] if len(d) > 1 else list(d.values())
+                d_values = list(d.values())
 
                 query = """
                 INSERT INTO public.SCRAP_PARAMS (
@@ -86,3 +85,17 @@ def insert_to_scrap_params(data: list[any]):
         print(f'Critical error during database operation: {e}')
     finally:
         engine.dispose()
+
+
+def delete_scrap_param_row(sector: str) -> CursorResult:
+    """ delete a row of scrap parameters according the sector """
+
+    engine = create_engine(db_url)
+
+    with engine.connect() as connection:
+        delete_query = text("DELETE FROM public.SCRAP_PARAMS WHERE sector = :sector")
+        result = connection.execute(delete_query, {'sector': sector})
+
+        connection.commit()
+
+    return result

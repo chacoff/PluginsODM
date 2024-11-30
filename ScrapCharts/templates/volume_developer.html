@@ -16,7 +16,6 @@
     <table id="data-table">
         <thead>
         <tr>
-            <th>Counter</th>
             <th>Sector</th>
             <th>Angle</th>
             <th>Crop Left</th>
@@ -33,7 +32,7 @@
         <tbody>
         {% for row in df.data %}
         <tr>
-            <td>{{ row.0 }}</td>
+<!--?            <td>{{ row.0 }}</td>-->
             <td><input type="text" name="sector_{{ row.0 }}" value="{{ row.1 }}" maxlength="16" required class="form-control"></td>
             <td><input type="number" name="angle_{{ row.0 }}" value="{{ row.2 }}" step="1" class="form-control"></td>
             <td><input type="number" name="crop_left_{{ row.0 }}" value="{{ row.3 }}" step="1" class="form-control"></td>
@@ -104,7 +103,6 @@
 
         const newRow = `
         <tr>
-            <td>${rowCount}</td>
             <td><input type="text" name="sector_${rowCount}" maxlength="16" required class="form-control"></td>
             <td><input type="number" name="angle_${rowCount}" step="1" class="form-control"></td>
             <td><input type="number" name="crop_left_${rowCount}" step="1" class="form-control"></td>
@@ -123,7 +121,44 @@
 
     function deleteRow(button) {
             const row = button.closest("tr");
-            row.remove();
+            const sector = row.querySelector('input[name^="sector_"]').value;
+            const csrfToken = getCSRFToken();
+
+            if (confirm(`Are you sure you want to delete sector ${sector}?`)) {
+                fetch('/plugins/ScrapCharts/delete_scrap_param/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                        'X-CSRFToken': csrfToken,
+                    },
+                    body: `sector=${encodeURIComponent(sector)}`
+                })
+                        .then(response => response.json())
+                        .then(result => {
+                            if (result.success) {
+                                row.remove();
+                                const statusDiv = document.getElementById("status-message");
+                                statusDiv.innerText = result.status;
+                                statusDiv.style.color = "green";
+
+                                setTimeout(() => {
+                                    statusDiv.innerText = "";
+                                }, 3000); // 3 s
+                            } else {
+                                const statusDiv = document.getElementById("status-message");
+                                statusDiv.innerText = "Error: " + error.message;
+                                statusDiv.style.color = "red";
+
+                                setTimeout(() => {
+                                    statusDiv.innerText = "";
+                                }, 6000); // 6 s
+                            }
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('Failed to delete row');
+                        });
+            }
         }
 
     function getTableData() {
@@ -134,17 +169,16 @@
         rows.forEach((row) => {
             const cells = row.querySelectorAll("td");
             const rowData = {
-                counter: parseInt(cells[0].textContent.trim(), 10) || null,
-                sector: cells[1].querySelector("input").value.trim(),
-                angle: parseInt(cells[2].querySelector("input").value.trim(), 10) || null,
-                crop_left: parseInt(cells[3].querySelector("input").value.trim(), 10) || null,
-                crop_top: parseInt(cells[4].querySelector("input").value.trim(), 10) || null,
-                crop_right: parseInt(cells[5].querySelector("input").value.trim(), 10) || null,
-                crop_bottom: parseInt(cells[6].querySelector("input").value.trim(), 10) || null,
-                scale: parseFloat(cells[7].querySelector("input").value.trim()) || null,
-                quality: parseInt(cells[8].querySelector("input").value.trim(), 10) || null,
-                reviewer: cells[9].querySelector("input").value.trim(),
-                updated_at: cells[10].querySelector("input").value.trim()
+                sector: cells[0].querySelector("input").value.trim(),
+                angle: parseInt(cells[1].querySelector("input").value.trim(), 10) || null,
+                crop_left: parseInt(cells[2].querySelector("input").value.trim(), 10) || null,
+                crop_top: parseInt(cells[3].querySelector("input").value.trim(), 10) || null,
+                crop_right: parseInt(cells[4].querySelector("input").value.trim(), 10) || null,
+                crop_bottom: parseInt(cells[5].querySelector("input").value.trim(), 10) || null,
+                scale: parseFloat(cells[6].querySelector("input").value.trim()) || null,
+                quality: parseInt(cells[7].querySelector("input").value.trim(), 10) || null,
+                reviewer: cells[8].querySelector("input").value.trim(),
+                updated_at: cells[9].querySelector("input").value.trim()
             };
             data.push(rowData);
         });
@@ -180,7 +214,7 @@
             }, 3000); // 3 s
 
         }).catch((error) => {
-            console.error("Error:", error);
+            console.error("Backend response, error:", error);
             const statusDiv = document.getElementById("status-message");
             statusDiv.innerText = "Error: " + error.message;
             statusDiv.style.color = "red";

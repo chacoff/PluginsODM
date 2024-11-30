@@ -19,7 +19,7 @@ from .webodm_access import (get_factory_access,
                             get_projects_with_tasks,
                             get_project_id_from_task_id,
                             get_lookup_table)
-from .volumes_db import get_scrap_params, insert_to_scrap_params
+from .volumes_db import get_scrap_params, insert_to_scrap_params, delete_scrap_param_row
 
 executor = ThreadPoolExecutor(max_workers=4)
 
@@ -154,7 +154,7 @@ class Plugin(PluginBase):
 
             return render(request, self.template_path("volume_developer.html"), args)
 
-        @login_required()
+        @login_required
         def update_dev_db(request):
             if request.method == "POST":
                 try:
@@ -166,10 +166,29 @@ class Plugin(PluginBase):
             else:
                 return JsonResponse({'error': 'Invalid request method'}, status=405)
 
+        @login_required
+        def delete_scrap_param(request):
+            if request.method == "POST":
+                try:
+                    sector = request.POST.get('sector')
+                    if not sector:
+                        return JsonResponse({'success': False, 'error': 'No sector provided'}, status=400)
+
+                    result = delete_scrap_param_row(sector)
+
+                    if result.rowcount > 0:
+                        return JsonResponse({'success': True, 'message': f'Sector {sector} deleted successfully'})
+                    else:
+                        return JsonResponse({'success': False, 'error': 'No matching sector found'}, status=404)
+
+                except Exception as e:
+                    return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
         return [
             MountPoint('$', volume_graphs), 
             MountPoint('get_flight_data', get_flight_data),
             MountPoint('get_factory_flights', get_factory_flights),
             MountPoint('dev_mode', dev_mode),
-            MountPoint('update_dev_db', update_dev_db)
+            MountPoint('update_dev_db', update_dev_db),
+            MountPoint('delete_scrap_param', delete_scrap_param)
             ]
