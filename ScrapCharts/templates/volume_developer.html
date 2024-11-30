@@ -32,8 +32,7 @@
         <tbody>
         {% for row in df.data %}
         <tr>
-<!--?            <td>{{ row.0 }}</td>-->
-            <td><input type="text" name="sector_{{ row.0 }}" value="{{ row.1 }}" maxlength="16" required class="form-control"></td>
+            <td><input type="text" name="sector_{{ row.0 }}" value="{{ row.1 }}" maxlength="16" required class="form-control" readonly></td>
             <td><input type="number" name="angle_{{ row.0 }}" value="{{ row.2 }}" step="1" class="form-control"></td>
             <td><input type="number" name="crop_left_{{ row.0 }}" value="{{ row.3 }}" step="1" class="form-control"></td>
             <td><input type="number" name="crop_top_{{ row.0 }}" value="{{ row.4 }}" step="1" class="form-control"></td>
@@ -60,6 +59,7 @@
 <style>
     table {
         width: 90%;
+        table-layout: fixed;
         border-collapse: collapse;
         margin: 16px 0;
         font-size: 13px;
@@ -67,8 +67,10 @@
     }
 
     table th, table td {
-        border: 0px solid #ddd;
-        padding: 4px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 6px 8px;
     }
 
     table th {
@@ -96,6 +98,16 @@
         const tableBody = document.querySelector("#data-table tbody");
         rowCount = tableBody.rows.length;
     });
+
+    function getCSRFToken() {
+        const cookies = document.cookie.split("; ");
+        for (let cookie of cookies) {
+            if (cookie.startsWith("csrftoken=")) {
+                return cookie.split("=")[1];
+            }
+        }
+        return "";
+    }
 
     function appendRow() {
         const tableBody = document.querySelector("#data-table tbody");
@@ -132,32 +144,34 @@
                         'X-CSRFToken': csrfToken,
                     },
                     body: `sector=${encodeURIComponent(sector)}`
-                })
-                        .then(response => response.json())
-                        .then(result => {
-                            if (result.success) {
-                                row.remove();
-                                const statusDiv = document.getElementById("status-message");
-                                statusDiv.innerText = result.status;
-                                statusDiv.style.color = "green";
+                }).then(response => {
+                    if (response.ok){
+                        return response.json();
+                    }
+                    throw new Error(`HTTP error! Status: ${response.status}`)
+                }).then(result => {
+                    if (result.success) {
+                        row.remove();
+                        const statusDiv = document.getElementById("status-message");
+                        statusDiv.innerText = result.status;
+                        statusDiv.style.color = "green";
 
-                                setTimeout(() => {
-                                    statusDiv.innerText = "";
-                                }, 3000); // 3 s
-                            } else {
-                                const statusDiv = document.getElementById("status-message");
-                                statusDiv.innerText = "Error: " + error.message;
-                                statusDiv.style.color = "red";
+                        setTimeout(() => {
+                            statusDiv.innerText = "";
+                        }, 2500); // 2.5 s
+                    } else {
+                        const statusDiv = document.getElementById("status-message");
+                        statusDiv.innerText = "Error: " + error.message;
+                        statusDiv.style.color = "red";
 
-                                setTimeout(() => {
-                                    statusDiv.innerText = "";
-                                }, 6000); // 6 s
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error:', error);
-                            alert('Failed to delete row');
-                        });
+                        setTimeout(() => {
+                            statusDiv.innerText = "";
+                        }, 3500); // 3.5 s
+                    }
+                }).catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete row');
+                });
             }
         }
 
@@ -197,12 +211,11 @@
                 "X-CSRFToken": csrfToken
             },
             body: JSON.stringify(data)
-        }).then((response) => {
+        }).then(response => {
             if (response.ok) {
                 return response.json();
-            } else {
-                throw new Error(`HTTP error! Status: ${response.status}`);
             }
+            throw new Error(`HTTP error! Status: ${response.status}`);
         }).then((result) => {
             console.log("Backend response:", result);
             const statusDiv = document.getElementById("status-message");
@@ -211,7 +224,8 @@
 
             setTimeout(() => {
                 statusDiv.innerText = "";
-            }, 3000); // 3 s
+                refreshDevMode()
+            }, 2500); // 2.5 s
 
         }).catch((error) => {
             console.error("Backend response, error:", error);
@@ -221,38 +235,25 @@
 
             setTimeout(() => {
                 statusDiv.innerText = "";
-            }, 6000); // 6 s
+            }, 3500); // 3.5 s
         });
-    }
-
-    function getCSRFToken() {
-        const cookies = document.cookie.split("; ");
-        for (let cookie of cookies) {
-            if (cookie.startsWith("csrftoken=")) {
-                return cookie.split("=")[1];
-            }
-        }
-        return "";
     }
 
     function refreshDevMode() {
         fetch('/plugins/ScrapCharts/dev_mode/', {
             method: 'GET', // GET if no data is being sent; otherwise, POST
-        })
-                .then(response => {
-                    if (response.ok) {
-                        return response.text();
-                    }
-                    throw new Error('Network response was not ok');
-                })
-                .then(html => {
-                    document.open();
-                    document.write(html);
-                    document.close();
-                })
-                .catch(error => {
-                    console.error('Error fetching new page:', error);
-                });
+        }).then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error('Network response was not ok');
+        }).then(html => {
+            document.open();
+            document.write(html);
+            document.close();
+        }).catch(error => {
+            console.error('Error fetching new page:', error);
+        });
     }
 
 </script>
