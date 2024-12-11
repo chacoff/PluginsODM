@@ -4,9 +4,11 @@
 {% block content %}
 
 <link rel="stylesheet" href="./venobox.min.css" type="text/css" media="screen" />
+<link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
 <script type="text/javascript" src="./venobox.min.js"></script>
 <script src="./Chart.min.js"></script>
 <script src="./ChartColors.js"></script>
+<script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 
 <h2>{% trans 'Volume reports' %}</h2>
 <br />
@@ -44,88 +46,29 @@
 </div>
 <!-- Dropbox menu -->
 
-<br />
-
-<div id="pilesInfo">
-    <div class="container_info">
-        <div class="row">
-            <div class="label">Sector:</div>
-            <div class="value"></div> <!-- {{ place }} -->
-        </div>
-        <div class="row">
-            <div class="label">Found:</div>
-            <div class="value"></div> <!-- {{ n_piles }} -->
-        </div>
-        <div class="row">
-            <div class="label">Flight date:</div>
-            <div class="value"></div> <!-- {{ flights.0 }} -->
-        </div>
-        <div class="row">
-            <div class="label">Last update:</div>
-            <div class="value">January 03, 2018 at 08:02am</div> <!-- -->
-        </div>
-        <div class="row">
-            <div class="label">Task ID:</div>
-            <div class="value"></div> <!-- {{ task_id }} -->
-        </div>
-        <div class="row">
-            <div class="label">Project ID:</div>
-            <div class="value"></div> <!-- {{ task_project_id }} -->
-        </div>
-        <div class="row">
-            <div class="label">Orthomosaic:</div>
-            <div class="value"><a href="#">View orthomosaic image</a></div>
-        </div>
-    </div>
-</div>
-
+<!-- Image {{ image_url }}-->
+<!-- Sector {{ place }} -->
+<!-- Found {{ n_piles }} -->
+<!-- Flight date {{ flights.0 }} -->
+<!-- Task ID {{ task_id }} -->
+<!-- Project ID {{ task_project_id }} -->
 <br />
 
 <div class="row text-center" id="masterContent">
 
     <div class="col-md-4 col-sm-12">
-        <div style="width: 80%; margin-left: 10%;">
-            <canvas id="chartCanvas" width="260" height="320" style="margin-bottom: 12px;"></canvas>
-        </div>
-
-        <div>
-            <button class="btn btn-default" onclick="changeChartType('bar')">Bar</button>
-            <button class="btn btn-default" onclick="changeChartType('line')">Line</button>
-            <button class="btn btn-default" onclick="changeChartType('doughnut')">Donut</button>
-            <button class="btn btn-default" onclick="changeChartType('pie')">Pie</button>
-        </div>
-
+        <div id="wrapperTable"></div>
     </div>
 
     <div class="col-md-4 col-sm-12">
-        <div class="table-responsive">
-            <table class="table table-striped table-hover table-bordered compact-table">
-                <thead class="table-dark">
-                    <tr>
-                        <th scope="col">{% trans 'Pile' %}</th>
-                        <th scope="col">{% trans 'Drone Volume [m³]' %}</th>
-                        <!--
-                        <th scope="col">{% trans 'Updated at' %}</th>
-                        -->
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for x, y, _ in xy_pairs %}
-                    <tr>
-                        <td>{{ x }}</td>
-                        <td>{{ y }}</td>
-                        <!--
-                        <td>{{ z }}</td>
-                        -->
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+        <div style="width: 98%; margin-left: 1%;">
+            <canvas id="chartCanvas"></canvas>
         </div>
-
     </div>
 
 </div>
+
+
 
 <style>
 /* Modal container styles */
@@ -220,9 +163,11 @@
 <script>
 
     let chartInstance;
+    let gridInstance = null;
     let isFirstOpen = {{ isFirstOpen|yesno:"true,false" }};
     let x_values = [{% for x in x_values %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
     let y_values = [{% for y in y_values %}{{ y }}{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
+    let data_values;
     let updated_at_values = [{% for z in updated_at_values%}"{{ z }}"{% if not forloop.last %}, {% endif %}{% endfor %}]; // python variables getting global in js
     let task_id;
     let project_id;
@@ -230,9 +175,9 @@
     let place;
     let flight_list;
 
-    initChart('bar');
-    initVenoBox()
-    hideContent()
+    initChart();
+    initVenoBox();
+    hideContent();
 
     function hideContent() {
         console.log(isFirstOpen);
@@ -257,7 +202,7 @@
         });
     }
 
-    function initChart(type) {
+    function initChart() {
         const ctx = document.getElementById('chartCanvas').getContext('2d');
 
         if (chartInstance) {
@@ -265,7 +210,7 @@
         }
 
         chartInstance = new Chart(ctx, {
-            type: type,
+            type: 'pie',
             data: {
                 labels: x_values,  // [{% for x in x_values %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
                 datasets: [{
@@ -277,25 +222,37 @@
                 }]
             },
             options: {
+                indexAxis: 'y',
+                responsive: true,
                 plugins: {
+                    legend: {
+                        position: 'top',
+                    },
                     tooltip: {
                         enabled: true,
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        ticks: {
-                            stepSize: 250
-                        },
                     }
                 }
             }
         });
     }
 
-    function changeChartType(newType) {
-        initChart(newType);
+    function initTable(_data) {
+
+        if (gridInstance) {
+                gridInstance.destroy();
+        }
+
+        gridInstance  = new gridjs.Grid({
+            columns: ['Pile', 'Volume'],
+            sort: true,
+            pagination: {
+                limit: 10
+            },
+            fixedHeader: true,
+            search: true,
+            data: _data,
+            width: 460
+        }).render(document.getElementById("wrapperTable"));
     }
 
     function updateFlightsDropdown(){
@@ -339,6 +296,7 @@
                 .then(data => {
                     x_values = data.x_values;
                     y_values = data.y_values;
+                    data_values = x_values.map((el, index) => [el, y_values[index]]);
                     updated_at_values = data.updated_at_values;
                     task_id = data.task_id;
                     project_id = data.task_project_id;
@@ -350,70 +308,12 @@
                     chartInstance.data.datasets[0].data = y_values;
                     chartInstance.update();
 
-                    updateTable(x_values, y_values, updated_at_values);
-
-                    const pilesInfo = document.getElementById("pilesInfo");
-                    pilesInfo.innerHTML = "";
-                    pilesInfo.innerHTML = `
-                    <div class="container_info">
-                        <div class="row">
-                            <div class="label">Sector:</div>
-                            <div class="value">${place}</div> <!-- {{ place }} -->
-                        </div>
-                        <div class="row">
-                            <div class="label">Found:</div>
-                            <div class="value">${x_values.length} piles</div> <!-- {{ n_piles }} -->
-                        </div>
-                        <div class="row">
-                            <div class="label">Flight date:</div>
-                            <div class="value">${formatTimestamp(selectedFlight)}.</div> <!-- {{ flights.0 }} -->
-                        </div>
-                        <div class="row">
-                            <div class="label">Last update:</div>
-                            <div class="value">${formatTimestamp(updated_at_values[0])}.</div> <!-- -->
-                        </div>
-                        <div class="row">
-                            <div class="label">Task ID:</div>
-                            <div class="value">${task_id}.</div> <!-- {{ task_id }} -->
-                        </div>
-                        <div class="row">
-                            <div class="label">Project ID:</div>
-                            <div class="value">${project_id}.</div> <!-- {{ task_project_id }} -->
-                        </div>
-                        <div class="row">
-                            <div class="label">Orthomosaic:</div>
-                            <div class="value"><a class="orto" href="${image_url}">View orthomosaic image</a></div>
-                        </div>
-                    </div>`;
-
-                    initVenoBox()
-                    hideContent()
+                    initTable(data_values);
+                    initVenoBox();
+                    hideContent();
                 })
                 .catch(error => console.error('Error fetching data:', error));
         }
-    }
-
-    function updateTable(xValues, yValues, updateValues) {
-        const tableBody = document.querySelector('table tbody');
-        tableBody.innerHTML = '';  // Clear
-
-        xValues.forEach((pile, index) => {
-            const row = document.createElement('tr');
-
-            const pileCell = document.createElement('td');
-            pileCell.textContent = pile;
-            row.appendChild(pileCell);
-
-            const volumeCell = document.createElement('td');
-            volumeCell.textContent = yValues[index];
-            row.appendChild(volumeCell);
-
-            // const updateCell = document.createElement('td');
-            // updateCell.textContent = updateValues[index];
-            // row.appendChild(updateCell);
-
-            tableBody.appendChild(row);
-        });
     }
 
     // Gets current data and export it to a CSV file
