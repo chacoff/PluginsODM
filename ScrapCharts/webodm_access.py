@@ -71,36 +71,36 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
     if factory == '':
         return {'error': 'factory is unknown.'}
 
-    flight_days, df = get_all_flights(factory)  # all flights from a factory and all full dataset
+    print(f'getting data from DB for {factory}')
+    _, df = get_all_flights(factory)  # all flights from a factory and all full dataset
+
+    result = df.groupby('task_id').agg({
+        'flightday': 'unique',
+        'sector': 'unique',
+        'factory': 'unique',
+        'updated_at': 'unique',
+        'pilot': 'unique',
+        'pile': list,
+        'volume_drone': list  # Collect all volumes into a list
+    }).reset_index()
+
+    result['flightday'] = result['flightday'].explode()
+    result['flightday'] = pd.to_datetime(result['flightday'])
+    flightday_array = result['flightday'].dt.strftime('%Y-%m-%d %H:%M:%S').tolist()
+
+    result['updated_at'] = result['updated_at'].explode()
+    result['updated_at'] = pd.to_datetime(result['updated_at'])
+    update_at_array = result['updated_at'].dt.strftime('%Y-%m-%d %H:%M:%S').tolist()
 
     db_data: dict = {
-        'piles_array': [],
-        'volumes_array': [],
-        'updated_array': [],
-        'flight_days': flight_days,
-        'task_id': 0,
-        'place': 'unknown',
-        'sector': 'unknown'
+        'piles_array': result['pile'].values.tolist(),
+        'volumes_array': result['volume_drone'].values.tolist(),
+        'flight_days': flightday_array,
+        'factory': result['factory'].explode().tolist(),
+        'sector': result['sector'].explode().tolist(),
+        'updated_at': update_at_array,
+        'pilot': result['pilot'].explode().tolist()
     }
-
-    if not specific_date:
-        return db_data
-
-    df = df[df['flightday'] == specific_date]  # filter df according flight day
-
-    df['volume_drone'] = df['volume_drone'].astype(float)
-    df['pile'] = df['pile'].astype(str)
-    df['updated_at'] = df['updated_at'].astype(str)
-
-    db_data['piles_array'] = df['pile'].values.tolist()  # x_values
-    db_data['volumes_array'] = df['volume_drone'].values.tolist()  # y_values
-    db_data['updated_array'] = df['updated_at'].values.tolist()  # updated_at_values
-    task_id = df['task_id'].unique().tolist()  # it should be only one, in case, we choose element 0 later
-    db_data['task_id'] = task_id[0]
-    factory: list = df['factory'].unique().tolist()
-    sector: list = df['sector'].unique().tolist()
-    db_data['sector'] = sector[0]
-    db_data['place'] = f'{factory[0]} - {sector[0]}'
 
     return db_data
 

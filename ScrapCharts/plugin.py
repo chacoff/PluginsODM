@@ -59,26 +59,8 @@ class Plugin(PluginBase):
                 args = {'error': 'Factory access is unknown. Most likely user does not belong to any group.'}
                 return render(request, self.template_path("volume_error.html"), args)
 
-            db_data = get_data_from_db(None, factory_access[0])
-
-            label: str = "Volume [m³]"
-            projects_tasks: list[dict[str, any]] = get_projects_with_tasks()
-            project_id: int = get_project_id_from_task_id(projects_tasks, db_data['task_id'])
-            orto: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.tif'
-
             template_args = {
-                'x_values': db_data['piles_array'],
-                'y_values': db_data['volumes_array'],
-                'updated_at_values': db_data['updated_array'],
-                'label': label,
-                # 'xy_pairs': list(zip(x_values, y_values, updated_at_values)),
-                'n_piles': 0,  # len(x_values),
-                'flights': db_data['flight_days'],
-                'task_id': db_data['task_id'],
-                'task_project_id': project_id,
-                'projects_with_tasks': projects_tasks,
-                'image_url': orto,
-                'isFirstOpen': True,
+                'label': "Volume [m³]",
                 'isBelval': groups[0],
                 'isDiffer': groups[1],
                 'isGlobal': groups[2],
@@ -90,7 +72,7 @@ class Plugin(PluginBase):
 
         @login_required
         def get_flight_data(request):
-            """"
+            """
             gets the data for a specific flight using the following pipeline:
                 1. get_data_from_db() using flight_day (specific_date) and factory in question
                 2. get_projects_with_tasks() gets all projects and tasks in webODM DB
@@ -122,7 +104,6 @@ class Plugin(PluginBase):
                                  "task_id": db_data['task_id'],
                                  "task_project_id": project_id,
                                  "image_url": orto_jpg,
-                                 'isFirstOpen': False,
                                  'sector_place': db_data['place']})
 
         @login_required
@@ -131,9 +112,19 @@ class Plugin(PluginBase):
 
             factory = request.GET.get("factory", "")
 
-            db_data = get_data_from_db(None, factory)
+            db_data: dict = get_data_from_db(None, factory)
 
-            return JsonResponse({"flightList": db_data['flight_days']})
+            print(db_data)
+
+            return JsonResponse({
+                'piles_array': db_data['piles_array'],
+                'volumes_array': db_data['volumes_array'],
+                'flightList': db_data['flight_days'],
+                'factory': db_data['factory'],
+                'sector': db_data['sector'],
+                'updated_at': db_data['updated_at'],
+                'pilot': db_data['pilot']
+            })
 
         @login_required
         def dev_mode(request):
