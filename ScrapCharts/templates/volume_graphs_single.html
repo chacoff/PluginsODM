@@ -1,0 +1,173 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<link rel="stylesheet" href="./venobox.min.css" type="text/css" media="screen" />
+<link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+<script type="text/javascript" src="./venobox.min.js"></script>
+<script src="./Chart.min.js"></script>
+<script src="./ChartColors.js"></script>
+<script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+
+<h2>{% trans 'Volume reports' %}</h2>
+<br />
+
+<div class="row text-center" id="masterContent">
+    <div class="col-md-4 col-sm-12">
+        <div id="wrapperTable"></div>
+    </div>
+
+    <div class="col-md-4 col-sm-12">
+        <div style="width: 98%; margin-left: 1%;">
+            <canvas id="chartCanvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    let chartInstance;
+    let gridInstance = null;
+    let isFirstOpen = {{ isFirstOpen|yesno:"true,false" }};
+    let x_values = [{% for x in x_values %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
+    let y_values = [{% for y in y_values %}{{ y }}{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
+    let data_values;
+    let updated_at_values = [{% for z in updated_at_values%}"{{ z }}"{% if not forloop.last %}, {% endif %}{% endfor %}]; // python variables getting global in js
+    let task_id;
+    let project_id;
+    let image_url;
+    let place;
+    let flight_list;
+
+    initChart();
+    initVenoBox();
+    hideContent();
+
+    function hideContent() {
+        console.log(isFirstOpen);
+        const element = document.getElementById('masterContent');
+
+        if (!isFirstOpen) {
+            element.style.display = 'block';
+        } else {
+            element.style.display = 'none';
+        }
+    }
+
+    function initVenoBox() {
+        new VenoBox({
+            selector: '.orto',
+            fitView: true,
+            numeration: false,
+            infinigall: false,
+            share: true,
+            spinColor: '#ed6b0c',
+            spinner: 'plane'
+        });
+    }
+
+    function initChart() {
+        const ctx = document.getElementById('chartCanvas').getContext('2d');
+
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: 'pie',
+            data: {
+                labels: x_values,
+                datasets: [{
+                    label: '{{ label }}',
+                    data: y_values,
+                    backgroundColor: modern_colors,
+                    borderColor: 'rgba(215, 212, 211, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    tooltip: {
+                        enabled: true,
+                    }
+                }
+            }
+        });
+    }
+
+    function initTable(_data) {
+
+        if (gridInstance) {
+                gridInstance.destroy();
+        }
+
+        gridInstance  = new gridjs.Grid({
+            columns: ['Pile', 'Volume'],
+            sort: true,
+            pagination: {
+                limit: 10
+            },
+            fixedHeader: true,
+            search: true,
+            data: _data,
+            width: 460
+        }).render(document.getElementById("wrapperTable"));
+    }
+
+    function updateData() {
+        const selectedFlight = document.getElementById('flightsDropdown').value;
+        const selectedFactory = document.getElementById('factoryDropdown').value;
+
+        if (selectedFlight) {
+            fetch(`/plugins/ScrapCharts/get_flight_data?flightDay=${selectedFlight}&factory=${selectedFactory}`)
+                .then(response => response.json())
+                .then(data => {
+                    x_values = data.x_values;
+                    y_values = data.y_values;
+                    data_values = x_values.map((el, index) => [el, y_values[index]]);
+                    updated_at_values = data.updated_at_values;
+                    task_id = data.task_id;
+                    project_id = data.task_project_id;
+                    image_url = data.image_url;
+                    isFirstOpen = data.isFirstOpen;  // Attention: use to show the content
+                    place = data.sector_place;
+
+                    chartInstance.data.labels = x_values;
+                    chartInstance.data.datasets[0].data = y_values;
+                    chartInstance.update();
+
+                    initTable(data_values);
+                    initVenoBox();
+                    hideContent();
+                })
+                .catch(error => console.error('Error fetching data:', error));
+        }
+    }
+
+    // Gets current data and export it to a CSV file
+    function exportToCSV() {
+        const selectedFlight = document.getElementById('flightsDropdown').value;
+
+        let csvContent = "FlightDay,Pile,Volume,UpdatedAt\n";  // Headers of CSV content
+
+        for (let i = 0; i < x_values.length; i++) {
+            csvContent += `${selectedFlight},${x_values[i]},${y_values[i]},${updated_at_values[i]}\n`;  // Data rows
+        }
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'data.csv';
+
+        link.click();  // click event to download
+    }
+
+</script>
+{% endblock %}

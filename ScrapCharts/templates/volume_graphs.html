@@ -24,11 +24,6 @@
             <i class="fa fa-file-csv"></i> {% trans "Load data" %}
         </button>
     </div>
-<!--?    <div>-->
-<!--?        <button class="btn btn-primary" onclick="exportToCSV()">-->
-<!--?            <i class="fa fa-file-csv"></i> {% trans "Export to CSV" %}-->
-<!--?        </button>-->
-<!--?    </div>-->
     {% if isDev %}
     <div>
         <button type="button" class="btn btn-primary" onclick="openDevMode()">
@@ -147,20 +142,16 @@
             data: _data,
         }).render(document.getElementById("wrapperTable"));
 
-        gridInstance.on('rowClick', (...args) => console.log('row: ' + JSON.stringify(args), args));
+        gridInstance.on('rowClick', (...args) => {
+            const rowData = args[1]?._cells?.map(cell => cell.data);
+            if (rowData) {
+                processRowData(rowData);
+            }
+        });
     }
 
-    //Formats the timestamp coming from the DB for a better display.
-    function formatTimestamp(timestamp) {
-        const date = new Date(timestamp);
-        const options = {
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        };
-        return date.toLocaleDateString('en-US', options).replace('at', 'at');
+    function processRowData(data) {
+      console.log('Processing Row Data:', data);
     }
 
     function openDevMode() {
