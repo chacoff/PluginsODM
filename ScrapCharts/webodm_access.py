@@ -3,6 +3,11 @@ from sqlalchemy import create_engine, text
 from app.models import Project, Task
 
 
+# localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
+db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
+# db_url = "postgresql+psycopg2://postgres:ArcelorT3ch*2024!?@host.docker.internal:5432/postgres"
+
+
 def get_projects_with_tasks() -> list[dict[str, any]]:
     """ gets all projects/tasks available in webODM DB """
 
@@ -71,8 +76,7 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
     if factory == '':
         return {'error': 'factory is unknown.'}
 
-    print(f'getting data from DB for {factory}')
-    _, df = get_all_flights(factory)  # all flights from a factory and all full dataset
+    df = get_all_flights(factory)  # all flights from a factory and all full dataset
 
     result = df.groupby('task_id').agg({
         'flightday': 'unique',
@@ -93,6 +97,7 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
     update_at_array = result['updated_at'].dt.strftime('%Y-%m-%d %H:%M:%S').tolist()
 
     db_data: dict = {
+        'task_ids': result['task_id'].values.tolist(),
         'piles_array': result['pile'].values.tolist(),
         'volumes_array': result['volume_drone'].values.tolist(),
         'flight_days': flightday_array,
@@ -105,11 +110,10 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
     return db_data
 
 
-def get_all_flights(factory: str) -> tuple[pd.DataFrame, pd.DataFrame]:
+def get_all_flights(factory: str) -> pd.DataFrame:
     """ gets all flights available in the database based on their <<flightday>> """
 
     query: str = ''
-    df: pd.DataFrame = pd.DataFrame()
     df_full: pd.DataFrame = pd.DataFrame()
 
     if factory == 'Belval':
@@ -119,26 +123,17 @@ def get_all_flights(factory: str) -> tuple[pd.DataFrame, pd.DataFrame]:
         query = "SELECT * FROM SCRAP_DIFF;"
 
     if not query == '':
-        # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
-        db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
-        # db_url = "postgresql+psycopg2://postgres:ArcelorT3ch*2024!?@host.docker.internal:5432/postgres"
         engine = create_engine(db_url)
         df_full: pd.DataFrame = pd.read_sql(query, engine)
-        df = df_full.copy()
         engine.dispose()
 
-        df['flightday'] = pd.to_datetime(df['flightday'])
-        date_strings = df['flightday'].dt.strftime('%Y-%m-%d %H:%M:%S').unique().tolist()
+        return df_full
 
-        return date_strings, df_full
-
-    return df, df_full
+    return df_full
 
 
 def get_lookup_table() -> dict:
     _lookup = {}
-
-    db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
     engine = create_engine(db_url)
 
     with engine.connect() as connection:

@@ -114,9 +114,8 @@ class Plugin(PluginBase):
 
             db_data: dict = get_data_from_db(None, factory)
 
-            print(db_data)
-
             return JsonResponse({
+                'task_ids': db_data['task_ids'],
                 'piles_array': db_data['piles_array'],
                 'volumes_array': db_data['volumes_array'],
                 'flightList': db_data['flight_days'],

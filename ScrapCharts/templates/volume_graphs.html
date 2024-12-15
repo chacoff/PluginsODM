@@ -48,7 +48,8 @@
 <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
 <script>
 
-    let gridInstance = null;
+    let gridInstance;
+    let task_ids;
     let flightList;
     let factory;
     let sector;
@@ -65,20 +66,23 @@
             fetch(`/plugins/ScrapCharts/get_factory_flights?factory=${selectedFactory}`)
                 .then(response => response.json())
                 .then(data => {
+                    task_ids = data.task_ids;
                     flightList = data.flightList;
                     factory = data.factory;
                     sector = data.sector;
-                    piles = data.piles_array;
-                    volumes = data.volumes_array;
                     updateAt = data.updated_at;
                     pilot = data.pilot;
+                    volumes = data.volumes_array;
+                    piles = data.piles_array;
                     dataMap = flightList.map((_, index) => [
+                        task_ids[index],
                         flightList[index],
                         factory[index],
                         sector[index],
                         updateAt[index],
                         pilot[index],
-                        volumes[index]
+                        volumes[index],
+                        piles[index]
                     ]);
 
                     initTable(dataMap);
@@ -105,13 +109,17 @@
 
         gridInstance  = new gridjs.Grid({
             columns: [
+                {
+                    name: 'Task ID',
+                    hidden: true
+                },
                 'Flight Day',
                 'Factory',
                 'Sector',
                 'Last Update',
                 'Pilot',
                 {
-                    name: 'Piles',
+                    name: 'Volumes',
                     sort: false,
                     width: '35%',
                     formatter: (cell) => {
@@ -124,6 +132,10 @@
 
                         return chart;
                     }
+                },
+                {
+                    name: 'Piles',
+                    hidden: true
                 }
             ],
             sort: true,
@@ -134,6 +146,8 @@
             search: true,
             data: _data,
         }).render(document.getElementById("wrapperTable"));
+
+        gridInstance.on('rowClick', (...args) => console.log('row: ' + JSON.stringify(args), args));
     }
 
     //Formats the timestamp coming from the DB for a better display.
