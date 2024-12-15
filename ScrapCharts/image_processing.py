@@ -3,6 +3,14 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 
+from django.conf import settings
+
+from concurrent.futures import ThreadPoolExecutor
+from .webodm_access import get_lookup_table
+
+
+executor = ThreadPoolExecutor(max_workers=4)
+
 
 def straighten(image: Image, angle: int) -> Image:
     if not hasattr(Image, 'Resampling'):  # Pillow<9.0
@@ -86,3 +94,11 @@ def convert_tif_to_jpg(_media, _project_id, _task_id, sector, lookup) -> None:
                                 draw=False)
         output_image = output_image.convert('RGB')
         output_image.save(jpg_path, quality=lookup[sector]['quality'] if sector in lookup else 80)
+
+
+def generate_mini_ortho(_project_id: int, _task_id: str, _sector: str) -> None:
+
+    lookup: dict = get_lookup_table()
+    media_root: str = settings.MEDIA_ROOT
+
+    executor.submit(convert_tif_to_jpg, media_root, _project_id, _task_id, _sector, lookup)

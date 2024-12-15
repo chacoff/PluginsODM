@@ -11,8 +11,7 @@ from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
 
 import json
-from concurrent.futures import ThreadPoolExecutor
-from .image_processing import convert_tif_to_jpg
+from .image_processing import generate_mini_ortho
 from .webodm_access import (get_factory_access,
                             get_user_group,
                             get_data_from_db,
@@ -20,8 +19,6 @@ from .webodm_access import (get_factory_access,
                             get_project_id_from_task_id,
                             get_lookup_table)
 from .volumes_db import get_scrap_params, insert_to_scrap_params, delete_scrap_param_row
-
-executor = ThreadPoolExecutor(max_workers=4)
 
 
 def init_urls() -> None:
@@ -104,6 +101,7 @@ class Plugin(PluginBase):
             row_data.append(project_id)
             row_data.append(orto_jpg)
 
+            generate_mini_ortho(project_id, row_data[0], row_data[3])
             args = {'row_data': row_data}
 
             return render(request, self.template_path('volume_graphs_single.html'), args)
@@ -165,33 +163,3 @@ class Plugin(PluginBase):
             MountPoint('update_dev_db', update_dev_db),
             MountPoint('delete_scrap_param', delete_scrap_param)
             ]
-
-
-def get_flight_data(request):
-
-    flight_day: request = request.GET.get("flightDay", "")
-    factory: request = request.GET.get("factory", "")
-    lookup: dict = get_lookup_table()
-    media_root: str = settings.MEDIA_ROOT
-
-    future_db_data = executor.submit(get_data_from_db, flight_day, factory)
-    future_projects_tasks = executor.submit(get_projects_with_tasks)
-
-    db_data = future_db_data.result()
-    projects_tasks = future_projects_tasks.result()
-
-    future_project_id = executor.submit(get_project_id_from_task_id, projects_tasks, db_data['task_id'])
-    project_id = future_project_id.result()
-
-    executor.submit(convert_tif_to_jpg, media_root, project_id, db_data['task_id'], db_data['sector'], lookup)
-
-    orto_jpg: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.jpg'
-
-    return JsonResponse({
-        "x_values": list(db_data['piles_array']),
-        "y_values": list(db_data['volumes_array']),
-        "updated_at_values": list(db_data['updated_array']),
-        "task_id": db_data['task_id'],
-        "task_project_id": project_id,
-        "image_url": orto_jpg,
-        'sector_place': db_data['place']})

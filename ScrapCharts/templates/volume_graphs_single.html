@@ -16,22 +16,21 @@
 <br />
 
 <div class="row text-center" id="masterContent">
-    <div class="col-md-4 col-sm-12">
-        <div id="wrapperTable"></div>
+    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">
+        <div id="wrapperTable" class="w-100 overflow-auto"></div>
     </div>
 
-    <div class="col-md-4 col-sm-12">
-        <div style="width: 88%; margin-left: 1%;">
-            <canvas id="chartCanvas"></canvas>
-        </div>
+    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">
+        <img src="{{ row_data.9 }}" class="img-fluid mx-auto d-block" style="max-width: 82%; max-height: 82%; object-fit: contain;" />
+    </div>
+
+    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">
+        <canvas id="chartCanvas" class="w-100"></canvas>
     </div>
 </div>
 
-{{ row_data.9 }}
-
 <script>
     let _task_id = "{{ row_data.0 }}";
-    let _project_id = "{{ row_data.8 }}";
     let _flight_date = "{{ row_data.1 }}";
     let _factory = "{{ row_data.2|escapejs }}";
     let _sector = "{{ row_data.3 }}";
@@ -42,13 +41,14 @@
     let _volumes = [{% for x in row_data.6 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
     let _piles = [{% for x in row_data.7 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
 
+    let _project_id = "{{ row_data.8 }}";
+    let image_url = "{{ row_data.9 }}";
+    let chartInstance;
+
     let _dataMap = _volumes.map((_, index) => [
                         _piles[index],
                         _volumes[index],
-                ]);
-
-    let image_url = "{{ row_data.9 }}";
-    let chartInstance;
+                    ]);
 
     initChart();
     initVenoBox();
@@ -125,7 +125,6 @@
             fixedHeader: true,
             search: true,
             data: _data,
-            width: 460
         }).render(document.getElementById("wrapperTable"));
     }
 
