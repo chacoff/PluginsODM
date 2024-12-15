@@ -59,7 +59,7 @@ class Plugin(PluginBase):
                 args = {'error': 'Factory access is unknown. Most likely user does not belong to any group.'}
                 return render(request, self.template_path("volume_error.html"), args)
 
-            template_args = {
+            args = {
                 'label': "Volume [m³]",
                 'isBelval': groups[0],
                 'isDiffer': groups[1],
@@ -68,43 +68,7 @@ class Plugin(PluginBase):
                 'factory_access': factory_access
             }
 
-            return render(request, self.template_path("volume_graphs.html"), template_args)
-
-        @login_required
-        def get_flight_data(request):
-            """
-            gets the data for a specific flight using the following pipeline:
-                1. get_data_from_db() using flight_day (specific_date) and factory in question
-                2. get_projects_with_tasks() gets all projects and tasks in webODM DB
-                3. get_project_id_from_task_id() will get the project_id of a task
-                4. convert_tif_to_png() will run in background
-            """
-
-            flight_day: request = request.GET.get("flightDay", "")
-            factory: request = request.GET.get("factory", "")
-            lookup: dict = get_lookup_table()
-            media_root: str = settings.MEDIA_ROOT
-
-            future_db_data = executor.submit(get_data_from_db, flight_day, factory)
-            future_projects_tasks = executor.submit(get_projects_with_tasks)
-
-            db_data = future_db_data.result()
-            projects_tasks = future_projects_tasks.result()
-
-            future_project_id = executor.submit(get_project_id_from_task_id, projects_tasks, db_data['task_id'])
-            project_id = future_project_id.result()
-
-            executor.submit(convert_tif_to_jpg, media_root, project_id, db_data['task_id'], db_data['sector'], lookup)
-
-            orto_jpg: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.jpg'
-
-            return JsonResponse({"x_values": list(db_data['piles_array']),
-                                 "y_values": list(db_data['volumes_array']),
-                                 "updated_at_values": list(db_data['updated_array']),
-                                 "task_id": db_data['task_id'],
-                                 "task_project_id": project_id,
-                                 "image_url": orto_jpg,
-                                 'sector_place': db_data['place']})
+            return render(request, self.template_path('volume_graphs.html'), args)
 
         @login_required
         def get_factory_flights(request):
@@ -124,6 +88,25 @@ class Plugin(PluginBase):
                 'updated_at': db_data['updated_at'],
                 'pilot': db_data['pilot']
             })
+
+        @login_required
+        def get_single_flight(request):
+
+            flight_data = request.GET.get('flightData')
+
+            row_data = json.loads(flight_data) if flight_data else []
+
+            project_and_tasks: list[dict] = get_projects_with_tasks()
+            project_id: int = get_project_id_from_task_id(project_and_tasks, row_data[0])
+
+            orto_jpg: str = f'/media/project/{project_id}/task/{row_data[0]}/assets/odm_orthophoto/odm_orthophoto.jpg'
+
+            row_data.append(project_id)
+            row_data.append(orto_jpg)
+
+            args = {'row_data': row_data}
+
+            return render(request, self.template_path('volume_graphs_single.html'), args)
 
         @login_required
         def dev_mode(request):
@@ -175,10 +158,40 @@ class Plugin(PluginBase):
                     return JsonResponse({'success': False, 'error': str(e)}, status=500)
 
         return [
-            MountPoint('$', volume_graphs), 
-            MountPoint('get_flight_data', get_flight_data),
+            MountPoint('$', volume_graphs),
             MountPoint('get_factory_flights', get_factory_flights),
+            MountPoint('get_single_flight', get_single_flight),
             MountPoint('dev_mode', dev_mode),
             MountPoint('update_dev_db', update_dev_db),
             MountPoint('delete_scrap_param', delete_scrap_param)
             ]
+
+
+def get_flight_data(request):
+
+    flight_day: request = request.GET.get("flightDay", "")
+    factory: request = request.GET.get("factory", "")
+    lookup: dict = get_lookup_table()
+    media_root: str = settings.MEDIA_ROOT
+
+    future_db_data = executor.submit(get_data_from_db, flight_day, factory)
+    future_projects_tasks = executor.submit(get_projects_with_tasks)
+
+    db_data = future_db_data.result()
+    projects_tasks = future_projects_tasks.result()
+
+    future_project_id = executor.submit(get_project_id_from_task_id, projects_tasks, db_data['task_id'])
+    project_id = future_project_id.result()
+
+    executor.submit(convert_tif_to_jpg, media_root, project_id, db_data['task_id'], db_data['sector'], lookup)
+
+    orto_jpg: str = f'/media/project/{project_id}/task/{db_data["task_id"]}/assets/odm_orthophoto/odm_orthophoto.jpg'
+
+    return JsonResponse({
+        "x_values": list(db_data['piles_array']),
+        "y_values": list(db_data['volumes_array']),
+        "updated_at_values": list(db_data['updated_array']),
+        "task_id": db_data['task_id'],
+        "task_project_id": project_id,
+        "image_url": orto_jpg,
+        'sector_place': db_data['place']})

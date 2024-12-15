@@ -10,8 +10,13 @@
 <script src="./ChartColors.js"></script>
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 
-<h2>{% trans 'Volume reports' %}</h2>
+<h2>{{ row_data.2 }} - {{ row_data.3 }}</h2>
+<h4>{{ row_data.4 }}</h4>
 <br />
+
+<button onclick="window.history.back();" class="btn btn-primary">Return</button>
+
+<br /> <br />
 
 <div class="row text-center" id="masterContent">
     <div class="col-md-4 col-sm-12">
@@ -26,34 +31,30 @@
 </div>
 
 <script>
+    let _task_id = "{{ row_data.0 }}";
+    let _project_id = "{{ row_data.8 }}";
+    let _flight_date = "{{ row_data.1 }}";
+    let _factory = "{{ row_data.2 }}";
+    let _sector = "{{ row_data.3 }}";
+    let _update_at = "{{ row_data.4 }}";
+    let _pilot = "{{ row_data.5 }}";
 
+    // proper arrays in JS
+    let _volumes = [{% for x in row_data.6 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    let _piles = [{% for x in row_data.7 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+
+    let _dataMap = _volumes.map((_, index) => [
+                        _piles[index],
+                        _volumes[index],
+                ]);
+
+    let image_url = "{{ row_data.9 }}";
     let chartInstance;
-    let gridInstance = null;
-    let isFirstOpen = {{ isFirstOpen|yesno:"true,false" }};
-    let x_values = [{% for x in x_values %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
-    let y_values = [{% for y in y_values %}{{ y }}{% if not forloop.last %}, {% endif %}{% endfor %}];  // python variables getting global in js
-    let data_values;
-    let updated_at_values = [{% for z in updated_at_values%}"{{ z }}"{% if not forloop.last %}, {% endif %}{% endfor %}]; // python variables getting global in js
-    let task_id;
-    let project_id;
-    let image_url;
-    let place;
-    let flight_list;
 
     initChart();
     initVenoBox();
-    hideContent();
-
-    function hideContent() {
-        console.log(isFirstOpen);
-        const element = document.getElementById('masterContent');
-
-        if (!isFirstOpen) {
-            element.style.display = 'block';
-        } else {
-            element.style.display = 'none';
-        }
-    }
+    initTable(_dataMap);
+    console.log(image_url);
 
     function initVenoBox() {
         new VenoBox({
@@ -77,10 +78,10 @@
         chartInstance = new Chart(ctx, {
             type: 'pie',
             data: {
-                labels: x_values,
+                labels: _piles,
                 datasets: [{
                     label: '{{ label }}',
-                    data: y_values,
+                    data: _volumes,
                     backgroundColor: modern_colors,
                     borderColor: 'rgba(215, 212, 211, 1)',
                     borderWidth: 1
@@ -120,37 +121,6 @@
         }).render(document.getElementById("wrapperTable"));
     }
 
-    function updateData() {
-        const selectedFlight = document.getElementById('flightsDropdown').value;
-        const selectedFactory = document.getElementById('factoryDropdown').value;
-
-        if (selectedFlight) {
-            fetch(`/plugins/ScrapCharts/get_flight_data?flightDay=${selectedFlight}&factory=${selectedFactory}`)
-                .then(response => response.json())
-                .then(data => {
-                    x_values = data.x_values;
-                    y_values = data.y_values;
-                    data_values = x_values.map((el, index) => [el, y_values[index]]);
-                    updated_at_values = data.updated_at_values;
-                    task_id = data.task_id;
-                    project_id = data.task_project_id;
-                    image_url = data.image_url;
-                    isFirstOpen = data.isFirstOpen;  // Attention: use to show the content
-                    place = data.sector_place;
-
-                    chartInstance.data.labels = x_values;
-                    chartInstance.data.datasets[0].data = y_values;
-                    chartInstance.update();
-
-                    initTable(data_values);
-                    initVenoBox();
-                    hideContent();
-                })
-                .catch(error => console.error('Error fetching data:', error));
-        }
-    }
-
-    // Gets current data and export it to a CSV file
     function exportToCSV() {
         const selectedFlight = document.getElementById('flightsDropdown').value;
 

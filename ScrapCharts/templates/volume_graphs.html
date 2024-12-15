@@ -150,8 +150,20 @@
         });
     }
 
-    function processRowData(data) {
-      console.log('Processing Row Data:', data);
+    function processRowData(rowData) {
+        console.log('Processing Row Data:', rowData);
+
+        fetch(`/plugins/ScrapCharts/get_single_flight?flightData=${encodeURIComponent(JSON.stringify(rowData))}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Failed to fetch page');
+                    return response.text();
+            })
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => console.error('Error:', error));
     }
 
     function openDevMode() {
