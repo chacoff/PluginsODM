@@ -53,9 +53,31 @@
     let updateAt;
     let pilot;
     let dataMap;
+    let selectedFactory;
+
+    updateAllFlights();
 
     function updateAllFlights() {
-        const selectedFactory = document.getElementById('factoryDropdown').value;
+        const urlParams = new URLSearchParams(window.location.search);
+        let lastFactory = urlParams.get('last_factory');
+
+        if (lastFactory) {
+            console.log('Last Factory:', lastFactory);
+            if (lastFactory === 'BLV') {
+                selectedFactory = 'Belval';
+            } else if (lastFactory === 'DIFF') {
+                selectedFactory = 'Differdange';
+            } else {
+                selectedFactory = 'Belval' // Default!
+            }
+
+            document.getElementById('factoryDropdown').value = selectedFactory;
+            const url = new URL(window.location.href);
+            url.searchParams.delete('last_factory');
+            window.history.replaceState({}, document.title, url.toString());
+        } else {
+            selectedFactory = document.getElementById('factoryDropdown').value;
+        }
 
         if (selectedFactory) {
             fetch(`/plugins/ScrapCharts/get_factory_flights?factory=${selectedFactory}`)

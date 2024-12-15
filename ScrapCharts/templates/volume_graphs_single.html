@@ -10,13 +10,10 @@
 <script src="./ChartColors.js"></script>
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 
-<h2>{{ row_data.2 }} - {{ row_data.3 }}</h2>
-<h4>{{ row_data.4 }}</h4>
+<button onclick="navigateToFactory()" type="button" class="btn btn-primary">Return</button><br />
 <br />
-
-<button onclick="window.history.back();" class="btn btn-primary">Return</button>
-
-<br /> <br />
+<h4 id="flightInfo">Flight of {{ row_data.4 }} in sector {{ row_data.3 }} - {{ row_data.2 }}</h4>
+<br />
 
 <div class="row text-center" id="masterContent">
     <div class="col-md-4 col-sm-12">
@@ -24,17 +21,19 @@
     </div>
 
     <div class="col-md-4 col-sm-12">
-        <div style="width: 98%; margin-left: 1%;">
+        <div style="width: 88%; margin-left: 1%;">
             <canvas id="chartCanvas"></canvas>
         </div>
     </div>
 </div>
 
+{{ row_data.9 }}
+
 <script>
     let _task_id = "{{ row_data.0 }}";
     let _project_id = "{{ row_data.8 }}";
     let _flight_date = "{{ row_data.1 }}";
-    let _factory = "{{ row_data.2 }}";
+    let _factory = "{{ row_data.2|escapejs }}";
     let _sector = "{{ row_data.3 }}";
     let _update_at = "{{ row_data.4 }}";
     let _pilot = "{{ row_data.5 }}";
@@ -54,7 +53,16 @@
     initChart();
     initVenoBox();
     initTable(_dataMap);
-    console.log(image_url);
+
+    const rawDate = "{{ row_data.4|escapejs }}"; // Ensure proper escaping
+    const formattedDate = formatDateTime(rawDate);
+
+    const flightInfoElement = document.getElementById('flightInfo');
+    flightInfoElement.innerHTML = `Flight of ${formattedDate} in sector {{ row_data.3 }} - {{ row_data.2 }}`;
+
+    function navigateToFactory() {
+        location.href = `/plugins/ScrapCharts/?last_factory=${encodeURIComponent(_factory)}`;
+    }
 
     function initVenoBox() {
         new VenoBox({
@@ -119,6 +127,14 @@
             data: _data,
             width: 460
         }).render(document.getElementById("wrapperTable"));
+    }
+
+    function formatDateTime(inputDate) {
+        const date = new Date(inputDate.replace(" ", "T")); // Convert to valid ISO format
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = date.toLocaleDateString('en-US', options);
+        const formattedTime = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}hr`;
+        return `${formattedDate} at ${formattedTime}`;
     }
 
     function exportToCSV() {
