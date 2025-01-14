@@ -15,21 +15,26 @@
 <h4 id="flightInfo">Flight of {{ row_data.4 }} in sector {{ row_data.3 }} - {{ row_data.2 }}</h4>
 <br />
 
-<div class="row text-center" id="masterContent">
-    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">
-        <div id="wrapperTable" class="w-100 overflow-auto"></div>
-    </div>
+<!--?<div class="row text-center" id="masterContent">-->
+<!--?    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">-->
+<!--?        <div id="wrapperTable" class="w-100 overflow-auto"></div>-->
+<!--?    </div>-->
 
-    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">
-        <img src="{{ row_data.9 }}" class="img-fluid mx-auto d-block" style="max-width: 82%; max-height: 82%; object-fit: contain;" />
-    </div>
+<!--?    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">-->
+<!--?        <img src="{{ row_data.9 }}" class="img-fluid mx-auto d-block" style="max-width: 82%; max-height: 82%; object-fit: contain;" />-->
+<!--?    </div>-->
 
-    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">
-        <canvas id="chartCanvas" class="w-100"></canvas>
-    </div>
-</div>
+<!--?    <div class="col-md-4 col-sm-12 d-flex justify-content-center align-items-stretch">-->
+<!--?        <canvas id="chartCanvas" class="w-100"></canvas>-->
+<!--?    </div>-->
+<!--?</div>-->
+
+<div id="wrapperTable" class="w-100 overflow-auto"></div>
+<br>
+<img src="{{ row_data.9 }}" class="img-fluid mx-auto d-block" style="max-width: 82%; max-height: 82%; object-fit: contain;" />
 
 <script>
+    let chart = false;  // @jaime: false since is removed, but the JS is kept
     let _task_id = "{{ row_data.0 }}";
     let _flight_date = "{{ row_data.1 }}";
     let _factory = "{{ row_data.2|escapejs }}";
@@ -50,7 +55,9 @@
                         _volumes[index],
                     ]);
 
-    initChart();
+    if (chart){
+        initChart();
+    }
     initVenoBox();
     initTable(_dataMap);
 
@@ -117,10 +124,30 @@
         }
 
         gridInstance  = new gridjs.Grid({
-            columns: ['Pile', 'Volume'],
+            columns: [
+                'Pile',
+                {
+                    name: 'Drone Volume',
+                    columns: [{
+                      name: 'ODM'
+                    }, {
+                      name: 'Pix4D'
+                    },{
+                      name: 'Δ (%)'
+                    }]
+                },
+                {
+                    name: 'Volume',
+                    columns: [{
+                      name: 'Trench'
+                    }, {
+                      name: 'Total'
+                    }]
+                },
+            ],
             sort: true,
             pagination: {
-                limit: 10
+                limit: 6
             },
             fixedHeader: true,
             search: true,
