@@ -96,6 +96,7 @@ class Plugin(PluginBase):
             flight_data = request.GET.get('flightData')
 
             row_data = json.loads(flight_data) if flight_data else []
+            row_data[0] = row_data[0].strip()  # @bug fix: removes \t\t
 
             project_and_tasks: list[dict] = get_projects_with_tasks()
             project_id: int = get_project_id_from_task_id(project_and_tasks, row_data[0])
@@ -107,7 +108,8 @@ class Plugin(PluginBase):
 
             print(row_data)
 
-            generate_mini_ortho(project_id, row_data[0], row_data[3])
+            # TODO: mini ortho is generating manually for now
+            # generate_mini_ortho(project_id, row_data[0], row_data[3])
             args = {'row_data': row_data}
 
             return render(request, self.template_path('volume_graphs_single.html'), args)
