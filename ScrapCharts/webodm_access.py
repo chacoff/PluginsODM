@@ -125,10 +125,10 @@ def get_all_flights(factory: str) -> pd.DataFrame:
     df_full: pd.DataFrame = pd.DataFrame()
 
     if factory == 'Belval':
-        query = "SELECT * FROM scrap_blv;"
+        query = "SELECT * FROM SCRAP_BLV;"
 
     if factory == 'Differdange':
-        query = "SELECT * FROM scrap_diff;"
+        query = "SELECT * FROM SCRAP_DIFF;"
 
     if not query == '':
         engine = create_engine(db_url)

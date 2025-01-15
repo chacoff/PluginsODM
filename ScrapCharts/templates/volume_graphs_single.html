@@ -22,21 +22,21 @@
 
 <br />
 
-<h4 id="flightInfo">{{ row_data.3 }} - {{ row_data.2 }}<br />{{ row_data.4 }}</h4>
+<h4 id="flightInfo">{{ row_data.3 }} - {{ row_data.2 }}<br />{{ row_data.1 }}</h4>
 
 <br />
 
 <div class="container-fluid p-4">
-<!-- Table wrapper -->
   <div id="wrapperTable" class="w-100 overflow-auto border rounded"></div>
 
-  <!-- Image wrapper with card for elegant frame -->
   <div class="card shadow-sm mb-4">
     <div class="card-body p-3">
-      <img src="{{ row_data.9 }}" class="img-fluid w-100" alt="orthomosaic" />
+      <a class="orto" href="{{ row_data.13 }}"><img src="{{ row_data.13 }}" class="img-fluid w-100" alt="orthomosaic" /> </a>
     </div>
   </div>
 </div>
+
+<br />
 
 <script>
     let chart = false;  // @jaime: false since is removed, but the JS is kept
@@ -56,8 +56,8 @@
     let _trench = [{% for x in row_data.10 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
     let _total = [{% for x in row_data.11 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
 
-    let _project_id = "{{ row_data.8 }}";
-    let image_url = "{{ row_data.9 }}";
+    let _project_id = "{{ row_data.12 }}";
+    let image_url = "{{ row_data.13 }}";
     let chartInstance;
 
     let _dataMap = _odm.map((_, index) => [
@@ -75,7 +75,7 @@
     initVenoBox();
     initTable(_dataMap);
 
-    const rawDate = "{{ row_data.4|escapejs }}"; // Ensure proper escaping
+    const rawDate = "{{ row_data.1|escapejs }}"; // Ensure proper escaping
     const formattedDate = formatDateTime(rawDate);
 
     const flightInfoElement = document.getElementById('flightInfo');
@@ -88,11 +88,11 @@
           <td class="text-end fw-medium">{{ row_data.3 }}</td>
         </tr>
         <tr>
-          <td class="text-muted pe-1">Date:</td>
+          <td class="text-muted pe-1">Factory:</td>
           <td class="text-end fw-medium">{{ row_data.2 }}</td>
         </tr>
         <tr>
-          <td class="text-muted pe-1">Factory:</td>
+          <td class="text-muted pe-1">Date:</td>
           <td class="text-end fw-medium">${formattedDate}</td>
         </tr>
       </tbody>
@@ -205,21 +205,22 @@
     }
 
     function exportToCSV() {
-        const selectedFlight = document.getElementById('flightsDropdown').value;
+        console.log(_dataMap);
+        // const selectedFlight = document.getElementById('flightsDropdown').value;
 
-        let csvContent = "FlightDay,Pile,Volume,UpdatedAt\n";  // Headers of CSV content
+        // let csvContent = "FlightDay,Pile,Volume,UpdatedAt\n";  // Headers of CSV content
 
-        for (let i = 0; i < x_values.length; i++) {
-            csvContent += `${selectedFlight},${x_values[i]},${y_values[i]},${updated_at_values[i]}\n`;  // Data rows
-        }
+        // for (let i = 0; i < x_values.length; i++) {
+        //    csvContent += `${selectedFlight},${x_values[i]},${y_values[i]},${updated_at_values[i]}\n`;  // Data rows
+        // }
 
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
 
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = 'data.csv';
+        // const link = document.createElement('a');
+        // link.href = URL.createObjectURL(blob);
+        // link.download = 'data.csv';
 
-        link.click();  // click event to download
+        // link.click();  // click event to download
     }
 
 </script>
