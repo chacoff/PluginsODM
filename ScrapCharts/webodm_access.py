@@ -4,7 +4,7 @@ from app.models import Project, Task
 
 
 # localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
-db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
+db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/scrap"
 # db_url = "postgresql+psycopg2://postgres:ArcelorT3ch*2024!?@host.docker.internal:5432/postgres"
 
 
@@ -85,7 +85,11 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
         'updated_at': 'unique',
         'pilot': 'unique',
         'pile': list,
-        'volume_drone': list  # Collect all volumes into a list
+        'volume_odm': list,  # Collect all volumes into a list
+        'volume_pix4d': list,
+        'volume_delta': list,
+        'volume_trench': list,
+        'volume_total': list,
     }).reset_index()
 
     result['flightday'] = result['flightday'].explode()
@@ -99,7 +103,11 @@ def get_data_from_db(specific_date=None, factory='') -> dict:
     db_data: dict = {
         'task_ids': result['task_id'].values.tolist(),
         'piles_array': result['pile'].values.tolist(),
-        'volumes_array': result['volume_drone'].values.tolist(),
+        'volumes_odm': result['volume_odm'].values.tolist(),
+        'volumes_pix4d': result['volume_pix4d'].values.tolist(),
+        'volumes_delta': result['volume_delta'].values.tolist(),
+        'volumes_trench': result['volume_trench'].values.tolist(),
+        'volumes_total': result['volume_total'].values.tolist(),
         'flight_days': flightday_array,
         'factory': result['factory'].explode().tolist(),
         'sector': result['sector'].explode().tolist(),
@@ -117,10 +125,10 @@ def get_all_flights(factory: str) -> pd.DataFrame:
     df_full: pd.DataFrame = pd.DataFrame()
 
     if factory == 'Belval':
-        query = "SELECT * FROM SCRAP_BLV;"
+        query = "SELECT * FROM scrap_blv;"
 
     if factory == 'Differdange':
-        query = "SELECT * FROM SCRAP_DIFF;"
+        query = "SELECT * FROM scrap_diff;"
 
     if not query == '':
         engine = create_engine(db_url)

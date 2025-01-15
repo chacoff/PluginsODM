@@ -89,17 +89,25 @@
                     sector = data.sector;
                     updateAt = data.updated_at;
                     pilot = data.pilot;
-                    volumes = data.volumes_array;
+                    odm = data.volumes_odm;
+                    pix4d = data.volumes_pix4d;
+                    delta = data.volumes_delta;
+                    trench = data.volumes_trench;
+                    total = data.volumes_total;
                     piles = data.piles_array;
                     dataMap = flightList.map((_, index) => [
-                        task_ids[index],
-                        flightList[index],
-                        factory[index],
-                        sector[index],
-                        updateAt[index],
-                        pilot[index],
-                        volumes[index],
-                        piles[index]
+                        task_ids[index],    // 0
+                        flightList[index],  // 1
+                        factory[index],     // 2
+                        sector[index],      // 3
+                        updateAt[index],    // 4
+                        pilot[index],       // 5
+                        odm[index],         // 6
+                        piles[index],       // 7
+                        pix4d[index],       // 8
+                        delta[index],       // 9
+                        trench[index],      // 10
+                        total[index]        // 11
                     ]);
 
                     initTable(dataMap);
@@ -136,7 +144,7 @@
                 'Last Update',
                 'Pilot',
                 {
-                    name: '2D-Profile',
+                    name: '2D-Profile',  // ODM
                     sort: false,
                     width: '35%',
                     formatter: (cell) => {
@@ -152,6 +160,22 @@
                 },
                 {
                     name: 'Piles',
+                    hidden: true
+                },
+                {
+                    name: 'Pix4d',
+                    hidden: true
+                },
+                {
+                    name: 'Delta',
+                    hidden: true
+                },
+                {
+                    name: 'Trench',
+                    hidden: true
+                },
+                {
+                    name: 'Total',
                     hidden: true
                 }
             ],

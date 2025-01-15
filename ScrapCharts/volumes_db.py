@@ -3,7 +3,7 @@ from sqlalchemy import create_engine, text, CursorResult
 from datetime import datetime
 
 # host.docker.internal
-db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/waste_management"
+db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/scrap"
 
 
 def get_scrap_params(request) -> dict:

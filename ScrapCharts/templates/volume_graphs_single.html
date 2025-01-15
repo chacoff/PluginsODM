@@ -10,9 +10,20 @@
 <script src="./ChartColors.js"></script>
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 
-<button onclick="navigateToFactory()" type="button" class="btn btn-primary">Return</button><br />
+<div style="display: flex; align-items: center; gap: 20px;">
+    <div>
+        <button onclick="navigateToFactory()" type="button" class="btn btn-primary">Return</button><br />
+    </div>
+    <div>
+        <button onclick="exportToCSV()" type="button" class="btn btn-primary">Export Data</button>
+        <br/>
+    </div>
+</div>
+
 <br />
-<h4 id="flightInfo">Flight of {{ row_data.4 }} in sector {{ row_data.3 }} - {{ row_data.2 }}</h4>
+
+<h4 id="flightInfo">{{ row_data.3 }} - {{ row_data.2 }}<br />{{ row_data.4 }}</h4>
+
 <br />
 
 <div class="container-fluid p-4">
@@ -29,6 +40,7 @@
 
 <script>
     let chart = false;  // @jaime: false since is removed, but the JS is kept
+
     let _task_id = "{{ row_data.0 }}";
     let _flight_date = "{{ row_data.1 }}";
     let _factory = "{{ row_data.2|escapejs }}";
@@ -37,16 +49,24 @@
     let _pilot = "{{ row_data.5 }}";
 
     // proper arrays in JS
-    let _volumes = [{% for x in row_data.6 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    let _odm = [{% for x in row_data.6 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
     let _piles = [{% for x in row_data.7 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    let _pix4d = [{% for x in row_data.8 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    let _delta = [{% for x in row_data.9 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    let _trench = [{% for x in row_data.10 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    let _total = [{% for x in row_data.11 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
 
     let _project_id = "{{ row_data.8 }}";
     let image_url = "{{ row_data.9 }}";
     let chartInstance;
 
-    let _dataMap = _volumes.map((_, index) => [
+    let _dataMap = _odm.map((_, index) => [
                         _piles[index],
-                        _volumes[index],
+                        _odm[index],
+                        _pix4d[index],
+                        _delta[index],
+                        _trench[index],
+                        _total[index]
                     ]);
 
     if (chart){
@@ -59,7 +79,24 @@
     const formattedDate = formatDateTime(rawDate);
 
     const flightInfoElement = document.getElementById('flightInfo');
-    flightInfoElement.innerHTML = `Flight of ${formattedDate} in sector {{ row_data.3 }} - {{ row_data.2 }}`;
+    // flightInfoElement.innerHTML = `{{ row_data.3 }} - {{ row_data.2 }}<br /> ${formattedDate}`;
+    flightInfoElement.innerHTML = `
+    <table class="table table-borderless w-auto ms-auto" style="max-width: 45%;">
+      <tbody>
+        <tr>
+          <td class="text-muted pe-1">Sector:</td>
+          <td class="text-end fw-medium">{{ row_data.3 }}</td>
+        </tr>
+        <tr>
+          <td class="text-muted pe-1">Date:</td>
+          <td class="text-end fw-medium">{{ row_data.2 }}</td>
+        </tr>
+        <tr>
+          <td class="text-muted pe-1">Factory:</td>
+          <td class="text-end fw-medium">${formattedDate}</td>
+        </tr>
+      </tbody>
+    </table>`;
 
     function navigateToFactory() {
         location.href = `/plugins/ScrapCharts/?last_factory=${encodeURIComponent(_factory)}`;
@@ -90,7 +127,7 @@
                 labels: _piles,
                 datasets: [{
                     label: '{{ label }}',
-                    data: _volumes,
+                    data: _odm,
                     backgroundColor: modern_colors,
                     borderColor: 'rgba(215, 212, 211, 1)',
                     borderWidth: 1

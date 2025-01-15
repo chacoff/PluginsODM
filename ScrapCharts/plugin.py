@@ -78,7 +78,11 @@ class Plugin(PluginBase):
             return JsonResponse({
                 'task_ids': db_data['task_ids'],
                 'piles_array': db_data['piles_array'],
-                'volumes_array': db_data['volumes_array'],
+                'volumes_odm': db_data['volumes_odm'],
+                'volumes_pix4d': db_data['volumes_pix4d'],
+                'volumes_delta': db_data['volumes_delta'],
+                'volumes_trench': db_data['volumes_trench'],
+                'volumes_total': db_data['volumes_total'],
                 'flightList': db_data['flight_days'],
                 'factory': db_data['factory'],
                 'sector': db_data['sector'],
@@ -100,6 +104,8 @@ class Plugin(PluginBase):
 
             row_data.append(project_id)
             row_data.append(orto_jpg)
+
+            print(row_data)
 
             generate_mini_ortho(project_id, row_data[0], row_data[3])
             args = {'row_data': row_data}
