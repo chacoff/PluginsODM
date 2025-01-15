@@ -1,0 +1,13 @@
+{
+	"name": "Volume/Area/Length Measurements",
+	"webodmMinVersion": "2.5.0",
+	"description": "Compute volume, area and length measurements on Leaflet",
+	"version": "1.1.1",
+	"author": "Abdelkoddouss Izem, Piero Toffanin, Jaime Chacoff, Pierrick Cheviron",
+	"email": "pt@masseranolabs.com, jaime.gomez@usach.cl",
+	"repository": "https://github.com/chacoff/VolumeODM",
+	"tags": ["volume", "area", "length", "measurements"],
+	"homepage": "https://github.com/chacoff/VolumeODM",
+	"experimental": true,
+	"deprecated": false
+}

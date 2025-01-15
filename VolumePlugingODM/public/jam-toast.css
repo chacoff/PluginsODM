@@ -1,0 +1,109 @@
+/* Toast Container */
+.toast-container {
+  position: fixed;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 10px;
+  z-index: 9999;
+}
+
+/* Toast Styles */
+.toast {
+  display: flex;
+  align-items: center;
+  padding: 10px 20px;
+  background: #333;
+  color: #fff;
+  border-radius: 5px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.3);
+  opacity: 0;
+  transform: scale(0.8) translateZ(-50px);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  width: 400px;
+  max-width: 100%;
+}
+
+/* Position options */
+.toast-top-right {
+  top: 20px;
+  right: 20px;
+}
+
+.toast-top-left {
+  top: 20px;
+  left: 20px;
+}
+
+.toast-bottom-right {
+  bottom: 30px;
+  right: 30px;
+}
+
+.toast-bottom-left {
+  bottom: 20px;
+  left: 20px;
+}
+
+.toast-top-mid {
+  top: 110px;
+  left: 40%;
+}
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .toast-container {
+    padding: 1rem;
+    width: 100%;
+  }
+
+  .toast {
+    width: 100%;
+  }
+
+  .toast-top-mobile {
+    top: 10px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+
+  .toast-bottom-mobile {
+    bottom: 10px;
+    right: 50%;
+    transform: translateX(50%);
+  }
+}
+
+/* 3D stacking animation */
+.toast.show {
+  opacity: 1;
+  transform: scale(1) translateZ(0);
+}
+
+/* Vertical stacking hover effect */
+.toast-container:hover .toast {
+  transform: translateY(0);
+}
+
+/* Hover animation */
+.toast:hover {
+  transform: scale(1.05) translateZ(0);
+}
+
+/* Toast Types */
+.toast-info {
+  background-color: #007bff;
+}
+
+.toast-success {
+  background-color: #28a745;
+}
+
+.toast-warning {
+  background-color: #ffc107;
+  color: black;
+}
+
+.toast-error {
+  background-color: #dc3545;
+}

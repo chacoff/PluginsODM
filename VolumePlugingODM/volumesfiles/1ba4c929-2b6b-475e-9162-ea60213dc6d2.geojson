@@ -1,0 +1,138 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "Length": 151.55274616337695,
+                "Area": 1273.5254328638866,
+                "Title": "Measurement Object",
+                "Volume": 5.337,
+                "BaseSurface": "triangulate",
+                "UnitSystem": "metric"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            5.895721,
+                            49.533641
+                        ],
+                        [
+                            5.895855,
+                            49.533874
+                        ],
+                        [
+                            5.896407,
+                            49.533516
+                        ],
+                        [
+                            5.896016,
+                            49.533383
+                        ],
+                        [
+                            5.895721,
+                            49.533641
+                        ],
+                        [
+                            5.895721,
+                            49.533641
+                        ],
+                        [
+                            5.895721,
+                            49.533641
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Length": 44.22089543026226,
+                "Area": 0,
+                "Title": "Measurement Object",
+                "UnitSystem": "metric"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        5.896474,
+                        49.533897
+                    ],
+                    [
+                        5.89689,
+                        49.533605
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Length": 213.99908042567938,
+                "Area": 2724.089316587118,
+                "Title": "Measurement Object",
+                "Volume": 939429.3434,
+                "BaseSurface": "custom",
+                "CustomValue": 0,
+                "UnitSystem": "metric"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            5.896225,
+                            49.533989
+                        ],
+                        [
+                            5.896611,
+                            49.533484
+                        ],
+                        [
+                            5.897239,
+                            49.533599
+                        ],
+                        [
+                            5.896853,
+                            49.534059
+                        ],
+                        [
+                            5.896225,
+                            49.533989
+                        ],
+                        [
+                            5.896225,
+                            49.533989
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Length": 13.730587136725044,
+                "Area": 0,
+                "Title": "Measurement Object",
+                "UnitSystem": "metric"
+            },
+            "geometry": {
+                "type": "LineString",
+                "coordinates": [
+                    [
+                        5.896429,
+                        49.533849
+                    ],
+                    [
+                        5.896611,
+                        49.533885
+                    ]
+                ]
+            }
+        }
+    ]
+}
