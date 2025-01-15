@@ -1,0 +1,81 @@
+{
+    "type": "FeatureCollection",
+    "features": [
+        {
+            "type": "Feature",
+            "properties": {
+                "Length": 58.84575007621609,
+                "Area": 194.9648473486599,
+                "Title": "Measurement Object",
+                "Volume": 67459.7559,
+                "BaseSurface": "custom",
+                "CustomValue": 0,
+                "UnitSystem": "metric",
+                "Color": "#2ecc71"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            5.89593,
+                            49.533737
+                        ],
+                        [
+                            5.895908,
+                            49.533639
+                        ],
+                        [
+                            5.896134,
+                            49.533601
+                        ],
+                        [
+                            5.896206,
+                            49.533678
+                        ],
+                        [
+                            5.89593,
+                            49.533737
+                        ]
+                    ]
+                ]
+            }
+        },
+        {
+            "type": "Feature",
+            "properties": {
+                "Length": 39.400677017813166,
+                "Area": 60.000821895348544,
+                "Title": "Measurement Object",
+                "Volume": 20840.0243,
+                "BaseSurface": "custom",
+                "CustomValue": 0,
+                "UnitSystem": "metric",
+                "Color": "#e74c3c"
+            },
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [
+                    [
+                        [
+                            5.895466,
+                            49.533575
+                        ],
+                        [
+                            5.895611,
+                            49.533471
+                        ],
+                        [
+                            5.895675,
+                            49.533528
+                        ],
+                        [
+                            5.895466,
+                            49.533575
+                        ]
+                    ]
+                ]
+            }
+        }
+    ]
+}
