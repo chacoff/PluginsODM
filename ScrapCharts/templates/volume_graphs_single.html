@@ -178,6 +178,7 @@
         let fileName = _factory + '_' + _sector + '_' + _flight_date ;
         let fileNameFormatted = transformString(fileName);
 
+        const formattedDate = formatDateTime(_rawDate);
         let csvContent = _factory + ' - ' + _sector + ' - ' + formattedDate + "\n\n";
         csvContent += "Pile,ODM,Pix4d,Delta,Trench,Total\n";  // Headers of CSV content
         csvContent += _dataMap.map(row => row.join(',')).join('\n');
