@@ -12,10 +12,17 @@
 
 <div style="display: flex; align-items: center; gap: 20px;">
     <div>
-        <button onclick="navigateToFactory()" type="button" class="btn btn-primary">Return</button><br />
+        <button onclick="navigateToFactory()" type="button" class="btn btn-primary">
+            <i class="fas fa-undo"></i> Return</button><br />
     </div>
     <div>
-        <button onclick="exportToCSV()" type="button" class="btn btn-primary">Export Data</button>
+        <button onclick="refreshPage()" type="button" class="btn btn-primary">
+            <i class="fas fa-sync"></i> Refresh</button>
+        <br/>
+    </div>
+    <div>
+        <button onclick="exportToCSV()" type="button" class="btn btn-primary">
+            <i class="fas fa-download"></i> Export Data</button>
         <br/>
     </div>
 </div>
@@ -31,7 +38,7 @@
 
   <div class="card shadow-sm mb-4">
     <div class="card-body p-3">
-      <a class="orto" href="{{ row_data.13 }}"><img src="{{ row_data.13 }}" class="img-fluid w-100" alt="orthomosaic" /> </a>
+      <a class="orto" href="{{ row_data.13 }}"><img src="{{ row_data.13 }}" class="img-fluid w-100" width="100%" alt="orthomosaic" /> </a>
     </div>
   </div>
 </div>
@@ -43,6 +50,7 @@
 
     let _task_id = "{{ row_data.0 }}";
     let _flight_date = "{{ row_data.1 }}";
+    const _rawDate = "{{ row_data.1|escapejs }}"; // Ensure proper escaping
     let _factory = "{{ row_data.2|escapejs }}";
     let _sector = "{{ row_data.3 }}";
     let _update_at = "{{ row_data.4 }}";
@@ -69,34 +77,32 @@
                         _total[index]
                     ]);
 
-    if (chart){
-        initChart();
-    }
     initVenoBox();
     initTable(_dataMap);
+    initFlightInfo();
 
-    const rawDate = "{{ row_data.1|escapejs }}"; // Ensure proper escaping
-    const formattedDate = formatDateTime(rawDate);
-
-    const flightInfoElement = document.getElementById('flightInfo');
-    // flightInfoElement.innerHTML = `{{ row_data.3 }} - {{ row_data.2 }}<br /> ${formattedDate}`;
-    flightInfoElement.innerHTML = `
-    <table class="table table-borderless w-auto ms-auto" style="max-width: 45%;">
-      <tbody>
-        <tr>
-          <td class="text-muted pe-1">Sector:</td>
-          <td class="text-end fw-medium">{{ row_data.3 }}</td>
-        </tr>
-        <tr>
-          <td class="text-muted pe-1">Factory:</td>
-          <td class="text-end fw-medium">{{ row_data.2 }}</td>
-        </tr>
-        <tr>
-          <td class="text-muted pe-1">Date:</td>
-          <td class="text-end fw-medium">${formattedDate}</td>
-        </tr>
-      </tbody>
-    </table>`;
+    function initFlightInfo(){
+        const formattedDate = formatDateTime(_rawDate);
+        const flightInfoElement = document.getElementById('flightInfo');
+            // flightInfoElement.innerHTML = `{{ row_data.3 }} - {{ row_data.2 }}<br /> ${formattedDate}`;
+            flightInfoElement.innerHTML = `
+                <table class="table table-borderless w-auto ms-auto" style="max-width: 45%;">
+                  <tbody>
+                    <tr>
+                      <td class="text-muted pe-1">Sector:</td>
+                      <td class="text-end fw-medium">{{ row_data.3 }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted pe-1">Factory:</td>
+                      <td class="text-end fw-medium">{{ row_data.2 }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted pe-1">Date:</td>
+                      <td class="text-end fw-medium">${formattedDate}</td>
+                    </tr>
+                  </tbody>
+                </table>`;
+    }
 
     function navigateToFactory() {
         location.href = `/plugins/ScrapCharts/?last_factory=${encodeURIComponent(_factory)}`;
@@ -111,40 +117,6 @@
             share: true,
             spinColor: '#ed6b0c',
             spinner: 'plane'
-        });
-    }
-
-    function initChart() {
-        const ctx = document.getElementById('chartCanvas').getContext('2d');
-
-        if (chartInstance) {
-            chartInstance.destroy();
-        }
-
-        chartInstance = new Chart(ctx, {
-            type: 'pie',
-            data: {
-                labels: _piles,
-                datasets: [{
-                    label: '{{ label }}',
-                    data: _odm,
-                    backgroundColor: modern_colors,
-                    borderColor: 'rgba(215, 212, 211, 1)',
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                indexAxis: 'y',
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'top',
-                    },
-                    tooltip: {
-                        enabled: true,
-                    }
-                }
-            }
         });
     }
 
@@ -177,9 +149,7 @@
                 },
             ],
             sort: true,
-            pagination: {
-                limit: 8
-            },
+            pagination: true,
             fixedHeader: true,
             search: true,
             data: _data,
@@ -224,6 +194,15 @@
 
     function transformString(input) {
       return input.replace(/-/g, '_').replace(/ /g, 'T');
+    }
+
+    function refreshPage() {
+        let _dataSession = JSON.parse(sessionStorage.getItem("processRowData"));
+        console.log('Session Storage:', _dataSession);
+
+        initTable(_dataMap);
+        initFlightInfo();
+
     }
 
 </script>

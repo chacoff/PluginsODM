@@ -21,7 +21,7 @@
     </div>
     <div>
         <button class="btn btn-primary" onclick="updateAllFlights()">
-            <i class="fa fa-file-csv"></i> {% trans "Load data" %}
+            <i class="fas fa-sync"></i> {% trans "Load data" %}
         </button>
     </div>
     {% if isDev %}
@@ -202,6 +202,8 @@
 
     function processRowData(rowData) {
         console.log('Processing Row Data:', rowData);
+
+        sessionStorage.setItem("processRowData", JSON.stringify(rowData));
 
         fetch(`/plugins/ScrapCharts/get_single_flight?flightData=${encodeURIComponent(JSON.stringify(rowData))}`)
             .then(response => {
