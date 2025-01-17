@@ -6,8 +6,6 @@
 <link rel="stylesheet" href="./venobox.min.css" type="text/css" media="screen" />
 <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
 <script type="text/javascript" src="./venobox.min.js"></script>
-<script src="./Chart.min.js"></script>
-<script src="./ChartColors.js"></script>
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 
 <div style="display: flex; align-items: center; gap: 20px;">
@@ -128,25 +126,56 @@
 
         gridInstance  = new gridjs.Grid({
             columns: [
-                'Pile',
+				{
+					name: 'Pile',
+					formatter: (cell) => gridjs.html(`<b>${cell}</span>`)
+				},
                 {
                     name: 'Drone Volume',
                     columns: [{
-                      name: 'ODM'
+                      name: 'ODM (m³)',
+					  formatter: (cell) => {
+						  const value_odm = parseFloat(cell);
+						  return gridjs.html(`<span style="color: grey">${value_odm}</span>`)
+					  }
                     }, {
-                      name: 'Pix4D'
+                      name: 'Pix4D (m³)',
+					  formatter: (cell) => {
+						  const value_pix = parseFloat(cell);
+						  return gridjs.html(`<b style="color: orange">${value_pix}</b>`)
+					  }
                     },{
-                      name: 'Δ (%)'
+                      name: 'Δ (%)',
+					  formatter: (cell) => {
+							const value = parseFloat(cell);
+							return gridjs.html(`<b style="color: ${Math.abs(value) <= 5 ? 'green' : 'red'}">${value.toFixed(0)}%</b>`);
+					  }
                     }]
                 },
                 {
                     name: 'Volume',
                     columns: [{
-                      name: 'Trench'
+                      name: 'Trench (m³)',
+					  formatter: (cell) => {
+						  const value_trench = parseFloat(cell);
+						  return gridjs.html(`<span style="color: grey">${value_trench}</span>`)
+					  }
                     }, {
-                      name: 'Total'
+                      name: 'Total (m³)',
+					  formatter: (cell) => {
+						  const value_total = parseFloat(cell);
+						  return gridjs.html(`<b style="color: orange">${value_total}</b>`)
+					  }
                     }]
                 },
+				{
+					name: 'Density',
+					columns: [{
+						name: 'Factor',
+					}, {
+						name: 'Density',
+					}]
+				},
             ],
             sort: true,
             pagination: true,
@@ -162,7 +191,7 @@
                 padding: '0.8rem',      // Reduced cell padding
                 lineHeight: '1.3'       // Tighter line height
               },
-            }
+            },
         }).render(document.getElementById("wrapperTable"));
     }
 

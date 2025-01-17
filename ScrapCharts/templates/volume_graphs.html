@@ -184,12 +184,13 @@
                 }
             ],
             sort: true,
-            pagination: {
-                limit: 12
-            },
+            pagination: true,
             fixedHeader: true,
             search: true,
             data: _data,
+			className: {
+				table: 'custom-grid', // Add a custom class to the table
+			},
         }).render(document.getElementById("wrapperTable"));
 
         gridInstance.on('rowClick', (...args) => {
@@ -199,6 +200,14 @@
             }
         });
     }
+	
+	const style = document.createElement('style');
+	style.innerHTML = `
+	  .custom-grid tbody tr:hover td {
+		background-color: #F2F2F2;
+	  }
+	`;
+	document.head.appendChild(style);
 
     function processRowData(rowData) {
         console.log('Processing Row Data:', rowData);
