@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.conf import settings
 from django.conf.urls import include, url
 from django.views.static import serve
+from django.utils.translation import gettext as _
 
 from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
@@ -38,7 +39,7 @@ def init_urls() -> None:
 class Plugin(PluginBase):
 
     def main_menu(self):
-        return [Menu("Reports", self.public_url(""), "fa fa-industry fa-fw")]
+        return [Menu(_("Reports"), self.public_url(""), "fa fa-industry fa-fw")]
 
     def include_js_files(self):
         return ['Chart.min.js']
