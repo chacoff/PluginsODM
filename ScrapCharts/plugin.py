@@ -41,9 +41,6 @@ class Plugin(PluginBase):
     def main_menu(self):
         return [Menu(_("Reports"), self.public_url(""), "fa fa-industry fa-fw")]
 
-    def include_js_files(self):
-        return ['Chart.min.js']
-
     def app_mount_points(self):
         init_urls()
 
@@ -113,7 +110,8 @@ class Plugin(PluginBase):
 
             # TODO: mini ortho is generating manually for now
             # generate_mini_ortho(project_id, row_data[0], row_data[3])
-            args = {'row_data': row_data}
+            title: str = 'Report ' + row_data[2] + '-' + row_data[3]
+            args = {'row_data': row_data, 'title': title}
 
             return render(request, self.template_path('volume_graphs_single.html'), args)
 
