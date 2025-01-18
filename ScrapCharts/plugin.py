@@ -54,7 +54,8 @@ class Plugin(PluginBase):
 
             if not factory_access:
                 print(f'Error getting data from db. Factory Access: {factory_access}. Most likely is empty.')
-                args = {'error': 'Factory access is unknown. Most likely user does not belong to any group.'}
+                args = {'error': 'Factory access is unknown. Most likely user does not belong to any group.',
+                        'title': 'Drone Reporting'}
                 return render(request, self.template_path("volume_error.html"), args)
 
             args = {
@@ -63,7 +64,8 @@ class Plugin(PluginBase):
                 'isDiffer': groups[1],
                 'isGlobal': groups[2],
                 'isDev': groups[3],
-                'factory_access': factory_access
+                'factory_access': factory_access,
+                'title': 'Drone Reporting'
             }
 
             return render(request, self.template_path('volume_graphs.html'), args)
