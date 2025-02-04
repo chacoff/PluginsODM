@@ -53,14 +53,13 @@ class SaveFile(TaskView):
 
         try:
             cwd = os.getcwd()
-            file_path = f'{cwd}/coreplugins/VolumePlugingODM/volumesfiles/{data["name"]}.geojson'
+            file_path = f'{cwd}/coreplugins/VolumePlugingODM/volumesfiles/{data["TaskID"]}.geojson'
             directory = os.path.dirname(file_path)
             print(directory)
             if not os.path.exists(directory):
-                print("TTT")
                 os.makedirs(directory)
             with open(file_path, 'w', encoding='utf-8') as file:
-                json.dump(data["geoJSON"], file, indent=4)
+                json.dump(data, file, indent=4)
             print(f"Fichier sauvegardé avec succès à : {file_path}")
             return Response('File saved', status=status.HTTP_200_OK)
         except Exception as e:

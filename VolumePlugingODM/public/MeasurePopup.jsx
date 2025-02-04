@@ -79,7 +79,7 @@ export default class MeasurePopup extends React.Component {
     }
 
     if (this.state.baseMethod == 'custom' && this.state.volume !== null && this.state.volume !== false) {
-      result.CustomValue = this.state.customValue;
+      result.CustomValue = parseInt(this.state.customValue, 10);
     }
 
     result.UnitSystem = this.lastUnitSystem;
@@ -160,7 +160,6 @@ export default class MeasurePopup extends React.Component {
     if (!task) return;
 
     this.setState({volume: null, error: ""});
-
     $.ajax({
         type: 'POST',
         url: `/api/plugins/VolumePlugingODM/task/${task.id}/volume`,
@@ -191,6 +190,8 @@ export default class MeasurePopup extends React.Component {
         this.setState({error});
     });
   }
+
+  
 
   // @return the layers in the map
     //      at a specific lat/lon
@@ -251,8 +252,6 @@ export default class MeasurePopup extends React.Component {
             ]
         : ""}
         {error && <p>{_("Volume:")} <span className={"error theme-background-failed " + (error.length > 200 ? 'long' : '')}>{error}</span></p>}
-        
-        <a href="#" className="export-measurements" style={{ cursor: 'not-allowed' }}><i className="fa fa-database"></i> {_("Export to DB")}</a>
         
         <a href="#" onClick={this.exportMeasurement} className="export-measurements"><i className="fa fa-download"></i> {_("Export to GeoJSON")}</a>
 
