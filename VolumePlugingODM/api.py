@@ -1,3 +1,4 @@
+import datetime
 import os
 from rest_framework import serializers
 from rest_framework import status
@@ -50,10 +51,20 @@ class TaskVolumeResult(GetTaskResult):
 class SaveFile(TaskView):
     def post(self, request, pk=None, celery_task_id=None):
         data=request.data
+        username = request.user.username
 
         try:
             cwd = os.getcwd()
-            file_path = f'{cwd}/coreplugins/VolumePlugingODM/volumesfiles/{data["TaskID"]}.geojson'
+            backup_dir = f'{cwd}/app/static/app/volumesfiles/{data["TaskID"]}/'
+            if not os.path.exists(backup_dir):
+                os.makedirs(backup_dir)
+
+            existing_files = [f for f in os.listdir(backup_dir) if f.endswith('.geojson')]
+            nbfile = len(existing_files) + 1
+
+            date = datetime.datetime.now().isoformat(sep="-")
+
+            file_path = f'{cwd}/app/static/app/volumesfiles/{data["TaskID"]}/{data["TaskID"]}-rev{nbfile}-{date}-{username}.geojson'
             directory = os.path.dirname(file_path)
             print(directory)
             if not os.path.exists(directory):
