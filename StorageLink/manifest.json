@@ -1,0 +1,17 @@
+{
+  "name": "StorageLink",
+  "webodmMinVersion": "0.1.0",
+  "description": "A plugin to open Drone Storage",
+  "version": "0.0.1",
+  "author": "Jaime Chacoff",
+  "email": "jaime.gomez@usach.cl",
+  "repository": "https://github.com/OpenDroneMap/WebODM",
+  "tags": [
+    "plugin",
+    "charts",
+    "volume"
+  ],
+  "homepage": "https://github.com/OpenDroneMap/WebODM",
+  "experimental": false,
+  "deprecated": false
+}
