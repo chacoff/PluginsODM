@@ -12,22 +12,22 @@
 <div style="display: flex; align-items: center; gap: 20px;">
     <div>
         <button onclick="navigateToFactory()" type="button" class="btn btn-primary">
-            <i class="fas fa-undo"></i> Return</button><br />
+            <i class="fas fa-undo"></i> Retour</button><br />
     </div>
     <div>
         <button onclick="refreshPage()" type="button" class="btn btn-primary">
-            <i class="fas fa-sync"></i> Refresh</button>
+            <i class="fas fa-sync"></i> Actualiser</button>
         <br/>
     </div>
     <div>
         <button onclick="exportToCSV()" type="button" class="btn btn-primary">
-            <i class="fas fa-download"></i> Export Data</button>
+            <i class="fas fa-download"></i> Exporter au format CSV</button>
         <br/>
     </div>
 	
 	<div>
         <button onclick="exportToXLSX()" type="button" class="btn btn-primary">
-            <i class="fas fa-download"></i> Export Excel</button>
+            <i class="fas fa-download"></i> Exporter au format Excel</button>
         <br/>
     </div>
 </div>
@@ -94,11 +94,11 @@
                 <table class="table table-borderless w-auto ms-auto" style="max-width: 45%;">
                   <tbody>
                     <tr>
-                      <td class="text-muted pe-1">Sector:</td>
+                      <td class="text-muted pe-1">Secteur:</td>
                       <td class="text-end fw-medium">{{ row_data.3 }}</td>
                     </tr>
                     <tr>
-                      <td class="text-muted pe-1">Factory:</td>
+                      <td class="text-muted pe-1">Usine:</td>
                       <td class="text-end fw-medium">{{ row_data.2 }}</td>
                     </tr>
                     <tr>
@@ -140,7 +140,7 @@
                 {
                     name: 'Drone Volume',
                     columns: [{
-                      name: 'ODM (m³)',
+                      name: 'DronesLPL (m³)',
 					  formatter: (cell) => {
 						  const value_odm = parseFloat(cell);
 						  return gridjs.html(`<span style="color: grey">${value_odm}</span>`)
@@ -185,7 +185,7 @@
 				},
             ],
             sort: true,
-            pagination: true,
+            pagination: false,
             fixedHeader: true,
             search: true,
             data: _data,

@@ -6,12 +6,12 @@
 <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css" rel="stylesheet">
 
-<h2>{% trans 'Volume reports' %}</h2>
+<h2>{% trans 'Rapports de volume' %}</h2>
 <br />
 
 <!-- Dropbox menu -->
 <div style="display: flex; align-items: center; gap: 20px;">
-    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">Select source:</div>
+    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">sélectionner la source:</div>
     <div>
         <select class="form-control" id="factoryDropdown">
             {% for factory in factory_access %}
@@ -21,7 +21,7 @@
     </div>
     <div>
         <button class="btn btn-primary" onclick="updateAllFlights()">
-            <i class="fas fa-sync"></i> {% trans "Load data" %}
+            <i class="fas fa-sync"></i> {% trans "Charger les données" %}
         </button>
     </div>
     {% if isDev %}
@@ -142,13 +142,19 @@
                     name: 'Task ID',
                     hidden: true
                 },
-                'Flight Day',
-                'Factory',
-                'Sector',
-                'Last Update',
-                'Pilot',
                 {
-                    name: '2D-Profile',  // ODM
+					name: 'Jour de vol',
+					sort: {
+						initial: true,
+						direction: 'desc'
+					}
+				},
+                'Usine',
+                'Secteur',
+                'Dernière mise à jour',
+                'Pilote',
+                {
+                    name: 'Profil 2D',  // ODM
                     sort: false,
                     width: '35%',
                     formatter: (cell) => {
