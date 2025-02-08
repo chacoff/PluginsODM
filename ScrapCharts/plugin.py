@@ -39,7 +39,7 @@ def init_urls() -> None:
 class Plugin(PluginBase):
 
     def main_menu(self):
-        return [Menu(_("Reports"), self.public_url(""), "fa fa-industry fa-fw")]
+        return [Menu(_("Rapports"), self.public_url(""), "fa fa-industry fa-fw")]
 
     def app_mount_points(self):
         init_urls()
