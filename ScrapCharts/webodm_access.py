@@ -1,11 +1,10 @@
 import pandas as pd
+from .config import Config
 from sqlalchemy import create_engine, text
 from app.models import Project, Task
 
-
-# localhost // docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' db
-db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/scrap"
-# db_url = "postgresql+psycopg2://postgres:ArcelorT3ch*2024!?@host.docker.internal:5432/postgres"
+c: Config = Config()
+db_url: str = c.db_url()
 
 
 def get_projects_with_tasks() -> list[dict[str, any]]:
@@ -47,10 +46,10 @@ def get_factory_access(groups: list[bool]) -> list[str]:
     factory_access: list[str] = []
 
     if groups[0]:  # isBelval
-        factory_access = ['Belval']
+        factory_access = ['Belval', 'Differdange']
 
     if groups[1]:  # isDiffer
-        factory_access = ['Differdange']
+        factory_access = ['Differdange', 'Belval']
 
     if groups[2] or groups[3]:  # isGlobal or isDev
         factory_access = ['Belval', 'Differdange']

@@ -1,9 +1,10 @@
 import pandas as pd
+from .config import Config
 from sqlalchemy import create_engine, text, CursorResult
 from datetime import datetime
 
-# host.docker.internal
-db_url = "postgresql+psycopg2://postgres:API@host.docker.internal:5432/scrap"
+c: Config = Config()
+db_url: str = c.db_url()
 
 
 def get_scrap_params(request) -> dict:
