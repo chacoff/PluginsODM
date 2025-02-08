@@ -10,7 +10,7 @@ class Config:
     DB_PROD: str = 'DB_PROD'
 
     def db_url(self, ):
-        load_dotenv()
+        load_dotenv('.env')
         _db: str = self.DB_DEV if self._dev else self.DB_PROD
 
         return os.getenv(_db)
