@@ -42,7 +42,7 @@ def get_memory_stats():
 class Plugin(PluginBase):
 
     def main_menu(self):
-        return [Menu(_("Drone Storage"), self.public_url(''), "fa fa-cloud fa-fw")]
+        return [Menu(_("Drone PC Stockage"), self.public_url(''), "fa fa-cloud fa-fw")]
 
     def app_mount_points(self):
 

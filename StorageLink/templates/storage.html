@@ -5,11 +5,11 @@
 
 <script src="./Chart.min.js"></script>
 
-<h3>{% trans 'Drone Storage & Diagnostic Information' %}</h3>
+<h3>{% trans 'Informations sur le stockage et le diagnostic du PC du drone' %}</h3>
 <br />
 
 <div style="display: flex; align-items: center; gap: 20px;">
-    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">drone station:</div>
+    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">station drone:</div>
     <div>
         <button class="btn btn-primary" onclick="window.open('{{ target_url }}', '_blank')">
             <i class="fas fa-cloud"></i> {% trans "Drone Storage" %}
@@ -22,23 +22,23 @@
 
 <div class="row text-center">
     <div class="col-md-4 col-sm-12">
-        <h4>{% trans 'Storage Space' %}</h4>
+        <h4>{% trans 'Espace de stockage' %}</h4>
         <div style="width: 80%; margin-left: 10%;">
             <canvas id="diskChart" width="200" height="200" style="margin-bottom: 12px;"></canvas>
         </div>
-        <p><b>{% trans 'Free' context 'Megabytes of storage space' %}:</b> {{ free_disk_space|filesizeformat }} |
-            <b>{% trans 'Used' context 'Megabytes of storage space' %}:</b> {{ used_disk_space|filesizeformat }} |
-            <b>{% trans 'Total' context 'Megabytes of storage space' %}:</b> {{ total_disk_space|filesizeformat }}</p>
+        <p><b>{% trans 'Libre' context 'Megabytes of storage space' %}:</b> {{ free_disk_space|filesizeformat }} |
+            <b>{% trans 'Utilisé' context 'Megabytes of storage space' %}:</b> {{ used_disk_space|filesizeformat }} |
+            <b>{% trans 'Totale' context 'Megabytes of storage space' %}:</b> {{ total_disk_space|filesizeformat }}</p>
     </div>
     <div class="col-md-4 col-sm-12">
         {% if total_memory %}
-        <h4>{% trans 'Memory' context 'Computer memory (RAM)' %}</h4>
+        <h4>{% trans 'Mémoire' context 'Computer memory (RAM)' %}</h4>
         <div style="width: 80%; margin-left: 10%;">
             <canvas id="memoryChart" width="200" height="200" style="margin-bottom: 12px;"></canvas>
         </div>
-        <p><b>{% trans 'Free' context 'Megabytes of memory space' %}:</b> {{ free_memory|filesizeformat }} |
-            <b>{% trans 'Used' context 'Megabytes of memory space' %}:</b> {{ used_memory|filesizeformat }} |
-            <b>{% trans 'Total' context 'Megabytes of memory space'%}:</b> {{ total_memory|filesizeformat }}</p>
+        <p><b>{% trans 'Libre' context 'Megabytes of memory space' %}:</b> {{ free_memory|filesizeformat }} |
+            <b>{% trans 'Utilisé' context 'Megabytes of memory space' %}:</b> {{ used_memory|filesizeformat }} |
+            <b>{% trans 'Totale' context 'Megabytes of memory space'%}:</b> {{ total_memory|filesizeformat }}</p>
         {% endif %}
     </div>
 </div>
@@ -49,15 +49,15 @@
 (function(){
     var ctx = document.getElementById('diskChart').getContext('2d');
     var labels = {
-        "{% trans 'Used' context 'Megabytes of storage space' %}": '{{ used_disk_space|filesizeformat }}',
-        "{% trans 'Free' context 'Megabytes of storage space' %}": '{{ free_disk_space|filesizeformat }}'
+        "{% trans 'Utilisé' context 'Megabytes of storage space' %}": '{{ used_disk_space|filesizeformat }}',
+        "{% trans 'Libre' context 'Megabytes of storage space' %}": '{{ free_disk_space|filesizeformat }}'
     };
     var chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ["{% trans 'Used' context 'Megabytes of storage space' %}", "{% trans 'Free' context 'Megabytes of storage space' %}"],
+            labels: ["{% trans 'Utilisé' context 'Megabytes of storage space' %}", "{% trans 'Libre' context 'Megabytes of storage space' %}"],
             datasets: [{
-                label: "{% trans 'Disk Space' %}",
+                label: "{% trans 'espace disque' %}",
                 backgroundColor:[
                     "rgb(255, 99, 132)",
                     "rgb(54, 162, 235)"
@@ -84,15 +84,15 @@
 (function(){
     var ctx = document.getElementById('memoryChart').getContext('2d');
     var labels = {
-        "{% trans 'Used' context 'Megabytes of memory space' %}": '{{ used_memory|filesizeformat }}',
-        "{% trans 'Free' context 'Megabytes of memory space' %}": '{{ free_memory|filesizeformat }}'
+        "{% trans 'Utilisé' context 'Megabytes of memory space' %}": '{{ used_memory|filesizeformat }}',
+        "{% trans 'Libre' context 'Megabytes of memory space' %}": '{{ free_memory|filesizeformat }}'
     };
     var chart = new Chart(ctx, {
         type: 'bar',
         data: {
-            labels: ["{% trans 'Used' context 'Megabytes of memory space' %}", "{% trans 'Free' context 'Megabytes of memory space' %}"],
+            labels: ["{% trans 'Utilisé' context 'Megabytes of memory space' %}", "{% trans 'Libre' context 'Megabytes of memory space' %}"],
             datasets: [{
-                label: "{% trans 'Disk Space' %}",
+                label: "{% trans 'espace disque' %}",
                 backgroundColor:[
                     "rgb(255, 99, 132)",
                     "rgb(54, 162, 235)"
