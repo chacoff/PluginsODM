@@ -197,6 +197,11 @@
 			className: {
 				table: 'custom-grid', // Add a custom class to the table
 			},
+            language: {
+                'search': {
+                    'placeholder': '🔍 chercher un rapport ...',
+                }
+            },
         }).render(document.getElementById("wrapperTable"));
 
         gridInstance.on('rowClick', (...args) => {

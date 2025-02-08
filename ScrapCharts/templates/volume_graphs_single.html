@@ -162,7 +162,7 @@
                 {
                     name: 'Volume',
                     columns: [{
-                      name: 'Trench (m³)',
+                      name: 'Fossé (m³)',
 					  formatter: (cell) => {
 						  const value_trench = parseFloat(cell);
 						  return gridjs.html(`<span style="color: grey">${value_trench}</span>`)
@@ -176,11 +176,11 @@
                     }]
                 },
 				{
-					name: 'Density',
+					name: 'Densité',
 					columns: [{
-						name: 'Factor',
+						name: 'Facteur',
 					}, {
-						name: 'Density',
+						name: 'Densité',
 					}]
 				},
             ],
@@ -198,6 +198,11 @@
                 padding: '0.8rem',      // Reduced cell padding
                 lineHeight: '1.3'       // Tighter line height
               },
+            },
+            language: {
+                'search': {
+                    'placeholder': '🔍 chercher une pile ...',
+                }
             },
         }).render(document.getElementById("wrapperTable"));
     }
