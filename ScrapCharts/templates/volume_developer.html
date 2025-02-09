@@ -3,12 +3,22 @@
 
 {% block content %}
 
-<h2>{% trans 'Volume reports: developer' %}</h2>
+<div style="display: flex; align-items: center; gap: 20px;">
+    <div>
+        <button type="button" class="btn btn-primary">
+            <i class="fas fa-undo"></i> Retour</button><br />
+    </div>
+</div>
+
+<br />
+
+<h4 id="flightInfo"> ... </h4>
+
 <br />
 
 <!-- Content dev template -->
 {% if isDev %}
-<p>Hej, <b>{{ current_user }}</b>, you are in developer options. <br /> Here you have access to the volumes DB.</p>
+<p>Hej, <b>{{ current_user }}</b>, you are in developer options. Here you have access to the volumes DB.</p>
 
 {% csrf_token %}
 
@@ -37,52 +47,16 @@
 <div id="status-message"></div>
 <!-- Content dev template -->
 
-<style>
-    table {
-        width: 90%;
-        table-layout: fixed;
-        border-collapse: collapse;
-        margin: 16px 0;
-        font-size: 13px;
-        text-align: left;
-    }
-
-    table th, table td {
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-        padding: 6px 8px;
-    }
-
-    table th {
-        background-color: #f4f4f4;
-        font-weight: bold;
-    }
-
-    table tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-
-    table tr:hover {
-        background-color: #f9f9f9;
-    }
-
-    .add-row {
-        margin-top: 20px;
-    }
-</style>
-
 <script>
     // let rowCount = 0;
 
-    document.addEventListener("DOMContentLoaded", () => {
-        const tableBody = document.querySelector("#data-table tbody");
-        rowCount = tableBody.rows.length;
-    });
+    initFlightInfo();
 
-    // Usage:
-    document.querySelectorAll('.data-row').forEach(row => {
-        createDynamicInputs(row, row.dataset.values);
+    document.addEventListener("DOMContentLoaded", function () {
+        document.querySelectorAll(".data-row").forEach(row => {
+            const rowData = row.getAttribute("data-values");
+            createDynamicInputs(row, rowData); // Convert row data into input fields
+        });
     });
 
     function getCSRFToken() {
@@ -95,26 +69,45 @@
         return "";
     }
 
+    function initFlightInfo(){
+        const formattedDate = formatDateTime(_rawDate);
+        const flightInfoElement = document.getElementById('flightInfo');
+
+        flightInfoElement.innerHTML = `
+                <table class="table table-borderless w-auto ms-auto" style="max-width: 54%;">
+                  <tbody>
+                    <tr>
+                      <td class="text-muted pe-1">Secteur:</td>
+                      <td class="text-end fw-medium">{{ sector }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted pe-1">Usine:</td>
+                      <td class="text-end fw-medium">{{ factory }}</td>
+                    </tr>
+                    <tr>
+                      <td class="text-muted pe-1">Date de vol:</td>
+                      <td class="text-end fw-medium">${formattedDate}</td>
+                    </tr>
+                  </tbody>
+                </table>`;
+    }
+
+    function formatDateTime(inputDate) {
+        const date = new Date(inputDate.replace(" ", "T")); // Convert to valid ISO format
+        const options = { year: 'numeric', month: 'long', day: 'numeric' };
+        const formattedDate = date.toLocaleDateString('en-US', options);
+        const formattedTime = `${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}hr`;
+        return `${formattedDate} at ${formattedTime}`;
+    }
+
     function appendRow() {
-        const tableBody = document.querySelector("#data-table tbody");
-        rowCount += 1;
+        const tbody = document.querySelector('#data-table tbody');
+        const newRow = document.createElement('tr');
+        newRow.classList.add('data-row');
 
-        const newRow = `
-        <tr>
-            <td><input type="text" name="sector_${rowCount}" maxlength="16" required class="form-control"></td>
-            <td><input type="number" name="angle_${rowCount}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_left_${rowCount}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_top_${rowCount}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_right_${rowCount}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_bottom_${rowCount}" step="1" class="form-control"></td>
-            <td><input type="number" name="scale_${rowCount}" step="0.01" min="0" max="1" required class="form-control"></td>
-            <td><input type="number" name="quality_${rowCount}" step="1" min="0" max="100" class="form-control"></td>
-            <td><input type="text" name="reviewer_${rowCount}" maxlength="20" class="form-control"></td>
-            <td><input type="datetime-local" name="updated_at_${rowCount}" class="form-control"></td>
-            <td><button type="button" class="btn btn-default" onClick="deleteRow(this)">Delete</button></td>
-        </tr>`;
+        createDynamicInputs(newRow, []);
 
-        tableBody.insertAdjacentHTML("beforeend", newRow);
+        tbody.appendChild(newRow);
     }
 
     function deleteRow(button) {
@@ -226,8 +219,8 @@
     }
 
     function refreshDevMode() {
-        fetch('/plugins/ScrapCharts/dev_mode/', {
-            method: 'GET', // GET if no data is being sent; otherwise, POST
+        fetch(`/plugins/ScrapCharts/dev_mode/?task_id=${_task_id}&factory=${_factory}`, {
+            method: 'GET',
         }).then(response => {
             if (response.ok) {
                 return response.text();
@@ -244,9 +237,6 @@
 
     function createDynamicInputs(container, rowData) {
         const fieldDefinitions = [
-            { name: 'task_id', type: 'text', readonly: true },
-            { name: 'flightday', type: 'datetime-local' },
-            { name: 'sector', type: 'text' },
             { name: 'pile', type: 'text' },
             { name: 'baseMethod', type: 'text' },
             { name: 'reference', type: 'number' },
@@ -257,8 +247,13 @@
             { name: 'pix4d', type: 'number' }
         ];
 
-        const values = typeof rowData === 'string' ? rowData.split(',') : rowData;
-        const taskId = values[0];
+        const values = typeof rowData === 'string' ? rowData.split(',') : (Array.isArray(rowData) ? rowData : []);
+
+        while (values.length < fieldDefinitions.length) {
+            values.push(''); // Fill missing fields with empty values
+        }
+
+        const nameId = values[0] || 'new';
 
         values.forEach((value, index) => {
             const field = fieldDefinitions[index];
@@ -266,8 +261,8 @@
             const input = document.createElement('input');
 
             input.type = field.type;
-            input.name = `${field.name}_${taskId}`;
-            input.value = value;
+            input.name = `${field.name}_${nameId}`;
+            input.value = values[index] || '';
             input.className = 'form-control';
             if (field.readonly) input.readOnly = true;
 

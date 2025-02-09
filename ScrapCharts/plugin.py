@@ -120,6 +120,8 @@ class Plugin(PluginBase):
 
             task_id: str = request.GET.get('task_id')
             factory: str = request.GET.get('factory')
+            sector: str = request.GET.get('sector')
+            date: str = request.GET.get('flightdate')
 
             groups: list[bool] = get_user_group(request)
 
@@ -131,7 +133,12 @@ class Plugin(PluginBase):
                 'isDiffer': groups[1],
                 'isGlobal': groups[2],
                 'isDev': groups[3],
-                'df': df
+                'df': df,
+                'task_id': task_id,
+                'factory': factory,
+                'sector': sector,
+                'date': date,
+                'title': '-- Rapport DEV --',
             }
 
             return render(request, self.template_path("volume_developer.html"), args)

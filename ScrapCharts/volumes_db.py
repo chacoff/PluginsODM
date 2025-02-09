@@ -26,7 +26,8 @@ def get_scrap_params(request, _id: str, _fact: str) -> dict:
     df['task_id'] = df['task_id'].str.strip()
     df['flightday'] = df['updated_at'].dt.strftime('%Y-%m-%dT%H:%M:%S')
     df['updated_at'] = df['updated_at'].dt.strftime('%Y-%m-%dT%H:%M:%S')
-    df = df.drop(columns=['counter', 'polygon', 'area', 'perimeter', 'volume_delta', 'pilot', 'reviewer', 'factory'], axis=1)
+    to_drop: list[str] = ['flightday','counter', 'task_id', 'sector', 'factory', 'polygon', 'area', 'perimeter', 'volume_delta', 'pilot', 'reviewer', 'factory']
+    df = df.drop(columns= to_drop, axis=1)
 
     return df.to_dict(orient="split")  # records might be better
 

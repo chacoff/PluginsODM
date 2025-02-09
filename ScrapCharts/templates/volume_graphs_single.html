@@ -289,7 +289,7 @@
 	}
 
     function openDevMode() {
-        fetch(`/plugins/ScrapCharts/dev_mode/?task_id=${_task_id}&factory=${_factory}`, {
+        fetch(`/plugins/ScrapCharts/dev_mode/?task_id=${_task_id}&factory=${_factory}&flightdate=${_rawDate}&sector=${_sector}`, {
             method: 'GET',
         })
             .then(response => {
