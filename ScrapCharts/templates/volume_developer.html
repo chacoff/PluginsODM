@@ -8,43 +8,24 @@
 
 <!-- Content dev template -->
 {% if isDev %}
-<p>Hej, <b>{{ current_user }}</b>, you are in developer options. <br /> Modify here the parameters for orthomosaic re-scaling.</p>
+<p>Hej, <b>{{ current_user }}</b>, you are in developer options. <br /> Here you have access to the volumes DB.</p>
 
 {% csrf_token %}
 
 <div class="add-row">
     <table id="data-table">
         <thead>
-        <tr>
-            <th>Sector</th>
-            <th>Angle</th>
-            <th>Crop Left</th>
-            <th>Crop Top</th>
-            <th>Crop Right</th>
-            <th>Crop Bottom</th>
-            <th>Scale</th>
-            <th>Quality</th>
-            <th>Reviewer</th>
-            <th>Updated At</th>
-            <th> </th>
-        </tr>
+            <tr>
+                {% for title in df.columns %}
+                <th>{{ title }}</th>
+                {% endfor %}
+                <th> </th>
+            </tr>
         </thead>
         <tbody>
-        {% for row in df.data %}
-        <tr>
-            <td><input type="text" name="sector_{{ row.0 }}" value="{{ row.1 }}" maxlength="16" required class="form-control" readonly></td>
-            <td><input type="number" name="angle_{{ row.0 }}" value="{{ row.2 }}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_left_{{ row.0 }}" value="{{ row.3 }}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_top_{{ row.0 }}" value="{{ row.4 }}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_right_{{ row.0 }}" value="{{ row.5 }}" step="1" class="form-control"></td>
-            <td><input type="number" name="crop_bottom_{{ row.0 }}" value="{{ row.6 }}" step="1" class="form-control"></td>
-            <td><input type="number" name="scale_{{ row.0 }}" value="{{ row.7 }}" step="0.01" min="0" max="1" required class="form-control"></td>
-            <td><input type="number" name="quality_{{ row.0 }}" value="{{ row.8 }}" step="1" min="0" max="100" class="form-control"></td>
-            <td><input type="text" name="reviewer_{{ row.0 }}" value="{{ row.9 }}" maxlength="20" class="form-control"></td>
-            <td><input type="datetime-local" name="updated_at_{{ row.0 }}" value="{{ row.10 }}" class="form-control"></td>
-            <td><button type="button" class="btn btn-default" onClick="deleteRow(this)">Delete</button></td>
-        </tr>
-        {% endfor %}
+            {% for row in df.data %}
+            <tr class="data-row" data-values="{{ row|join:',' }}"></tr>
+            {% endfor %}
         </tbody>
     </table>
     <button type="button" class="btn btn-default" onClick="appendRow()">Add Row</button>
@@ -92,11 +73,16 @@
 </style>
 
 <script>
-    let rowCount = 0;
+    // let rowCount = 0;
 
     document.addEventListener("DOMContentLoaded", () => {
         const tableBody = document.querySelector("#data-table tbody");
         rowCount = tableBody.rows.length;
+    });
+
+    // Usage:
+    document.querySelectorAll('.data-row').forEach(row => {
+        createDynamicInputs(row, row.dataset.values);
     });
 
     function getCSRFToken() {
@@ -254,6 +240,49 @@
         }).catch(error => {
             console.error('Error fetching new page:', error);
         });
+    }
+
+    function createDynamicInputs(container, rowData) {
+        const fieldDefinitions = [
+            { name: 'task_id', type: 'text', readonly: true },
+            { name: 'flightday', type: 'datetime-local' },
+            { name: 'sector', type: 'text' },
+            { name: 'pile', type: 'text' },
+            { name: 'baseMethod', type: 'text' },
+            { name: 'reference', type: 'number' },
+            { name: 'ditch', type: 'number' },
+            { name: 'total', type: 'number' },
+            { name: 'updated_at', type: 'datetime-local' },
+            { name: 'ODM', type: 'number' },
+            { name: 'pix4d', type: 'number' }
+        ];
+
+        const values = typeof rowData === 'string' ? rowData.split(',') : rowData;
+        const taskId = values[0];
+
+        values.forEach((value, index) => {
+            const field = fieldDefinitions[index];
+            const td = document.createElement('td');
+            const input = document.createElement('input');
+
+            input.type = field.type;
+            input.name = `${field.name}_${taskId}`;
+            input.value = value;
+            input.className = 'form-control';
+            if (field.readonly) input.readOnly = true;
+
+            td.appendChild(input);
+            container.appendChild(td);
+        });
+
+        const deleteCell = document.createElement('td');
+        const deleteButton = document.createElement('button');
+        deleteButton.type = 'button';
+        deleteButton.className = 'btn btn-default';
+        deleteButton.onclick = function() { deleteRow(this); };
+        deleteButton.textContent = 'Delete';
+        deleteCell.appendChild(deleteButton);
+        container.appendChild(deleteCell);
     }
 
 </script>

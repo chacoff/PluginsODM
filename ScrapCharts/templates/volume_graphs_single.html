@@ -30,6 +30,11 @@
             <i class="fas fa-download"></i> Exporter au format Excel</button>
         <br/>
     </div>
+    <div id="devModeButton" style="display: none;">
+        <button type="button" class="btn btn-primary" onclick="openDevMode()">
+            <i class="fa fa-laptop-code"></i> Developer Options
+        </button>
+    </div>
 </div>
 
 <br />
@@ -51,6 +56,11 @@
 <br />
 
 <script>
+    const isDevTest = "{{ isDev }}" === "True";
+    if (isDevTest) {
+        document.getElementById('devModeButton').style.display = 'block';
+    }
+
     let chart = false;  // @jaime: false since is removed, but the JS is kept
 
     let _task_id = "{{ row_data.0 }}";
@@ -91,7 +101,7 @@
         const flightInfoElement = document.getElementById('flightInfo');
             // flightInfoElement.innerHTML = `{{ row_data.3 }} - {{ row_data.2 }}<br /> ${formattedDate}`;
             flightInfoElement.innerHTML = `
-                <table class="table table-borderless w-auto ms-auto" style="max-width: 45%;">
+                <table class="table table-borderless w-auto ms-auto" style="max-width: 54%;">
                   <tbody>
                     <tr>
                       <td class="text-muted pe-1">Secteur:</td>
@@ -102,7 +112,7 @@
                       <td class="text-end fw-medium">{{ row_data.2 }}</td>
                     </tr>
                     <tr>
-                      <td class="text-muted pe-1">Date:</td>
+                      <td class="text-muted pe-1">Date de vol:</td>
                       <td class="text-end fw-medium">${formattedDate}</td>
                     </tr>
                   </tbody>
@@ -277,6 +287,26 @@
 		// Generate XLSX file and trigger download
 		XLSX.writeFile(wb, fileNameFormatted + '.xlsx');
 	}
+
+    function openDevMode() {
+        fetch(`/plugins/ScrapCharts/dev_mode/?task_id=${_task_id}&factory=${_factory}`, {
+            method: 'GET',
+        })
+            .then(response => {
+                if (response.ok) {
+                    return response.text();
+                }
+                throw new Error('Network response was not ok');
+            })
+            .then(html => {
+                document.open();
+                document.write(html);
+                document.close();
+            })
+            .catch(error => {
+                console.error('Error fetching new page:', error);
+            });
+    }
 
 </script>
 {% endblock %}

@@ -24,18 +24,14 @@
             <i class="fas fa-sync"></i> {% trans "Charger les données" %}
         </button>
     </div>
-    {% if isDev %}
-    <div>
-        <button type="button" class="btn btn-primary" onclick="openDevMode()">
-            <i class="fa fa-laptop-code"></i> Developer Options
-        </button>
-    </div>
-    {% endif %}
-
 </div>
 <!-- Dropbox menu -->
 
 <br />
+
+{% if isDev %}
+<p><b>** You are a DronesLPL developer, choose a report to modify its values</b></p>
+{% endif %}
 
 <div id="wrapperTable"></div>
 
@@ -58,6 +54,7 @@
     let pilot;
     let dataMap;
     let selectedFactory;
+    let isDev = "{{ isDev }}";
 
     updateAllFlights();
 
@@ -222,10 +219,11 @@
 
     function processRowData(rowData) {
         console.log('Processing Row Data:', rowData);
+        console.log('Global graphs, isDev:', isDev);
 
         sessionStorage.setItem("processRowData", JSON.stringify(rowData));
 
-        fetch(`/plugins/ScrapCharts/get_single_flight?flightData=${encodeURIComponent(JSON.stringify(rowData))}`)
+        fetch(`/plugins/ScrapCharts/get_single_flight?flightData=${encodeURIComponent(JSON.stringify(rowData))}&isDev=${isDev}`)
             .then(response => {
                 if (!response.ok) throw new Error('Failed to fetch page');
                     return response.text();
@@ -236,26 +234,6 @@
                 document.close();
             })
             .catch(error => console.error('Error:', error));
-    }
-
-    function openDevMode() {
-        fetch('/plugins/ScrapCharts/dev_mode/', {
-            method: 'GET', // GET if no data is being sent; otherwise, POST
-        })
-                .then(response => {
-                    if (response.ok) {
-                        return response.text();
-                    }
-                    throw new Error('Network response was not ok');
-                })
-                .then(html => {
-                    document.open();
-                    document.write(html);
-                    document.close();
-                })
-                .catch(error => {
-                    console.error('Error fetching new page:', error);
-                });
     }
 
 </script>

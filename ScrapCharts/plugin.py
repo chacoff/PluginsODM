@@ -94,6 +94,7 @@ class Plugin(PluginBase):
         def get_single_flight(request):
 
             flight_data = request.GET.get('flightData')
+            isDev = request.GET.get('isDev')
 
             row_data = json.loads(flight_data) if flight_data else []
             row_data[0] = row_data[0].strip()  # @bug fix: removes \t\t
@@ -106,12 +107,10 @@ class Plugin(PluginBase):
             row_data.append(project_id)
             row_data.append(orto_jpg)
 
-            print(row_data)
-
             # TODO: mini ortho is generating manually for now
             # generate_mini_ortho(project_id, row_data[0], row_data[3])
-            title: str = 'Report ' + row_data[2] + '-' + row_data[3]
-            args = {'row_data': row_data, 'title': title}
+            title: str = 'Rapport ' + row_data[2] + '-' + row_data[3]
+            args = {'row_data': row_data, 'title': title, 'isDev': isDev}
 
             return render(request, self.template_path('volume_graphs_single.html'), args)
 
@@ -119,9 +118,12 @@ class Plugin(PluginBase):
         def dev_mode(request):
             """ renders page with the options for developer, i.e., parameters for orthomosaic """
 
+            task_id: str = request.GET.get('task_id')
+            factory: str = request.GET.get('factory')
+
             groups: list[bool] = get_user_group(request)
 
-            df = get_scrap_params(request)
+            df = get_scrap_params(request, task_id, factory)
 
             args: dict = {
                 'current_user': request.user,

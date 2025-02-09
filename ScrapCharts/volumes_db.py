@@ -7,14 +7,26 @@ c: Config = Config()
 db_url: str = c.db_url()
 
 
-def get_scrap_params(request) -> dict:
-    """ gets all the parameters from scrap_params table """
+def get_scrap_params(request, _id: str, _fact: str) -> dict:
+    """ gets all the parameters from scrap tables """
+
+    if _fact == 'BLV':
+        query = f"SELECT * FROM SCRAP_BLV WHERE task_id = '{_id}';"
+
+    elif _fact == 'DIFF':
+        query = f"SELECT * FROM SCRAP_DIFF WHERE task_id = '{_id}';"
+
+    else:
+        query = f"SELECT * FROM SCRAP_PARAMS;"
 
     engine = create_engine(db_url)
-    df = pd.read_sql("SELECT * FROM SCRAP_PARAMS;", con=engine)
+    df = pd.read_sql(query, con=engine)
     engine.dispose()
 
+    df['task_id'] = df['task_id'].str.strip()
+    df['flightday'] = df['updated_at'].dt.strftime('%Y-%m-%dT%H:%M:%S')
     df['updated_at'] = df['updated_at'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+    df = df.drop(columns=['counter', 'polygon', 'area', 'perimeter', 'volume_delta', 'pilot', 'reviewer', 'factory'], axis=1)
 
     return df.to_dict(orient="split")  # records might be better
 
