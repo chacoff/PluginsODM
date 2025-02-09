@@ -62,7 +62,7 @@ class Plugin(PluginBase):
                 'isGlobal': groups[2],
                 'isDev': groups[3],
                 'factory_access': factory_access,
-                'title': 'Drone Reporting'
+                'title': 'Volumes Rapports'
             }
 
             return render(request, self.template_path('volume_graphs.html'), args)
@@ -145,6 +145,9 @@ class Plugin(PluginBase):
 
         @login_required
         def update_dev_db(request):
+            _factory = request.GET.get('factory')
+            print(_factory)
+
             if request.method == "POST":
                 try:
                     data: list[dict[any]] = json.loads(request.body)

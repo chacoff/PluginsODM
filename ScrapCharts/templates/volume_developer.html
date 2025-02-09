@@ -194,7 +194,7 @@
         const data = getTableData();
         const csrfToken = getCSRFToken();
 
-        fetch("/plugins/ScrapCharts/update_dev_db/", {
+        fetch(`/plugins/ScrapCharts/update_dev_db/?factory=${_factory}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -248,7 +248,7 @@
 
     function createDynamicInputs(container, rowData) {
         const fieldDefinitions = [
-            { name: 'pile', type: 'text' },
+            { name: 'pile', type: 'text', readonly: true },
             { name: 'baseMethod', type: 'text' },
             { name: 'reference', type: 'number' },
             { name: 'ditch', type: 'number' },
