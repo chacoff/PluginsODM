@@ -5,8 +5,16 @@
 
 <div style="display: flex; align-items: center; gap: 20px;">
     <div>
-        <button type="button" class="btn btn-primary">
-            <i class="fas fa-undo"></i> Retour</button><br />
+        <button onclick="navigateToFactory()" type="button" class="btn btn-primary">
+            <i class="fas fa-undo"></i> Return</button><br />
+    </div>
+    <div>
+        <button onclick="updateTableData()" type="button" class="btn btn-primary">
+            <i class="fas fa-database"></i> Update DB</button><br />
+    </div>
+    <div>
+        <button onclick="refreshDevMode()" type="button" class="btn btn-primary">
+            <i class="fas fa-sync"></i> Refresh</button><br />
     </div>
 </div>
 
@@ -39,8 +47,6 @@
         </tbody>
     </table>
     <button type="button" class="btn btn-default" onClick="appendRow()">Add Row</button>
-    <button type="submit" class="btn btn-default" onclick="updateTableData()">Update</button>
-    <button type="button" class="btn btn-default" onclick="refreshDevMode()">Refresh</button>
 </div>
 <br />
 
@@ -67,6 +73,10 @@
             }
         }
         return "";
+    }
+
+    function navigateToFactory() {
+        location.href = `/plugins/ScrapCharts/?last_factory=${encodeURIComponent(_factory)}`;
     }
 
     function initFlightInfo(){
@@ -112,46 +122,47 @@
 
     function deleteRow(button) {
             const row = button.closest("tr");
-            const sector = row.querySelector('input[name^="sector_"]').value;
-            const csrfToken = getCSRFToken();
-
-            if (confirm(`Are you sure you want to delete sector ${sector}?`)) {
-                fetch('/plugins/ScrapCharts/delete_scrap_param/', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/x-www-form-urlencoded',
-                        'X-CSRFToken': csrfToken,
-                    },
-                    body: `sector=${encodeURIComponent(sector)}`
-                }).then(response => {
-                    if (response.ok){
-                        return response.json();
-                    }
-                    throw new Error(`HTTP error! Status: ${response.status}`)
-                }).then(result => {
-                    if (result.success) {
-                        row.remove();
-                        const statusDiv = document.getElementById("status-message");
-                        statusDiv.innerText = result.status;
-                        statusDiv.style.color = "green";
-
-                        setTimeout(() => {
-                            statusDiv.innerText = "";
-                        }, 2500); // 2.5 s
-                    } else {
-                        const statusDiv = document.getElementById("status-message");
-                        statusDiv.innerText = "Error: " + error.message;
-                        statusDiv.style.color = "red";
-
-                        setTimeout(() => {
-                            statusDiv.innerText = "";
-                        }, 3500); // 3.5 s
-                    }
-                }).catch(error => {
-                    console.error('Error:', error);
-                    alert('Failed to delete row');
-                });
-            }
+            row.remove();
+            // const sector = row.querySelector('input[name^="sector_"]').value;
+            // const csrfToken = getCSRFToken();
+            //
+            // if (confirm(`Are you sure you want to delete sector ${sector}?`)) {
+            //     fetch('/plugins/ScrapCharts/delete_scrap_param/', {
+            //         method: 'POST',
+            //         headers: {
+            //             'Content-Type': 'application/x-www-form-urlencoded',
+            //             'X-CSRFToken': csrfToken,
+            //         },
+            //         body: `sector=${encodeURIComponent(sector)}`
+            //     }).then(response => {
+            //         if (response.ok){
+            //             return response.json();
+            //         }
+            //         throw new Error(`HTTP error! Status: ${response.status}`)
+            //     }).then(result => {
+            //         if (result.success) {
+            //             row.remove();
+            //             const statusDiv = document.getElementById("status-message");
+            //             statusDiv.innerText = result.status;
+            //             statusDiv.style.color = "green";
+            //
+            //             setTimeout(() => {
+            //                 statusDiv.innerText = "";
+            //             }, 2500); // 2.5 s
+            //         } else {
+            //             const statusDiv = document.getElementById("status-message");
+            //             statusDiv.innerText = "Error: " + error.message;
+            //             statusDiv.style.color = "red";
+            //
+            //             setTimeout(() => {
+            //                 statusDiv.innerText = "";
+            //             }, 3500); // 3.5 s
+            //         }
+            //     }).catch(error => {
+            //         console.error('Error:', error);
+            //         alert('Failed to delete row');
+            //     });
+            // }
         }
 
     function getTableData() {
