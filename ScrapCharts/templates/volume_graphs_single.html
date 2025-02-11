@@ -72,8 +72,7 @@
     let _trench = [{% for x in row_data.10 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
     let _total = [{% for x in row_data.11 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
 
-    let _project_id = "{{ row_data.12 }}";
-    let image_url = "{{ row_data.13 }}";
+    let image_url = "{{ row_data.12 }}";
     let chartInstance;
 
     let _dataMap = _odm.map((_, index) => [

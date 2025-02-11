@@ -13,27 +13,13 @@ from app.plugins import PluginBase, Menu, MountPoint
 
 import json
 from requests import Response
-from .image_processing import generate_mini_ortho
-from .webodm_access import (get_factory_access,
-                            get_user_group,
-                            get_projects_with_tasks,
-                            get_project_id_from_task_id)
-from .volumes_db import get_scrap_params, insert_to_scrap_params, delete_scrap_param_row
-from .backend_api import get_all_flights_per_factory, organize_flight_data, reorganize_data, get_flight_per_task_id, create_flight_list
-
-
-def init_urls() -> None:
-    urlpatterns = [
-        url(r'^media/project/(?P<path>.*)$', serve, {
-            'document_root': os.path.join(settings.MEDIA_ROOT, 'project')
-        }),
-    ]
-
-    root_urlconf = __import__(settings.ROOT_URLCONF, {}, {}, [''])
-
-    if hasattr(root_urlconf, 'urlpatterns'):
-        root_urlconf.urlpatterns += urlpatterns
-        print('Added media/project urls')
+from .webodm_access import get_factory_access, get_user_group
+from .backend_api import (get_all_flights_per_factory,
+                          get_flight_per_task_id,
+                          organize_flight_data,
+                          reorganize_data,
+                          create_flight_list,
+                          create_flight_df)
 
 
 class Plugin(PluginBase):
@@ -42,7 +28,6 @@ class Plugin(PluginBase):
         return [Menu(_("Rapports"), self.public_url(""), "fa fa-industry fa-fw")]
 
     def app_mount_points(self):
-        init_urls()
 
         @login_required
         def volume_graphs(request):
@@ -99,19 +84,12 @@ class Plugin(PluginBase):
             _isDev = request.GET.get('isDev')
             _fact = request.GET.get('fact')
 
-            project_and_tasks: list[dict] = get_projects_with_tasks()
-            project_id: int = get_project_id_from_task_id(project_and_tasks, _id)
-
             data = get_flight_per_task_id(_fact, _id)
             flight_data: list = create_flight_list(data)
 
-            orto_jpg: str = f'/media/project/{project_id}/task/{_id}/assets/odm_orthophoto/odm_orthophoto.jpg'
+            orto_jpg: str = f'/media/CACHE/images/settings/orthos/{_id}.jpg'
 
-            flight_data.append(project_id)
             flight_data.append(orto_jpg)
-
-            # TODO: mini ortho is generating manually for now
-            # generate_mini_ortho(project_id, row_data[0], row_data[3])
 
             title: str = 'Rapport ' + _fact + '-'
             args = {'row_data': flight_data, 'title': title, 'isDev': _isDev}
@@ -129,7 +107,8 @@ class Plugin(PluginBase):
 
             groups: list[bool] = get_user_group(request)
 
-            df = get_scrap_params(request, task_id, factory)
+            data = get_flight_per_task_id(factory, task_id)
+            df = create_flight_df(data)
 
             args: dict = {
                 'current_user': request.user,
@@ -155,36 +134,19 @@ class Plugin(PluginBase):
             if request.method == "POST":
                 try:
                     data: list[dict[any]] = json.loads(request.body)
-                    insert_to_scrap_params(data)
+
+                    print(data)
+
                     return JsonResponse({'status': 'successfully updated the DB'})
                 except json.JSONDecodeError:
                     return JsonResponse({'error': 'Invalid JSON data'}, status=400)
             else:
                 return JsonResponse({'error': 'Invalid request method'}, status=405)
 
-        @login_required
-        def delete_scrap_param(request):
-            if request.method == "POST":
-                try:
-                    sector = request.POST.get('sector')
-                    if not sector:
-                        return JsonResponse({'success': False, 'error': 'No sector provided'}, status=400)
-
-                    result = delete_scrap_param_row(sector)
-
-                    if result.rowcount > 0:
-                        return JsonResponse({'success': True, 'status': f'Sector {sector} deleted successfully'})
-                    else:
-                        return JsonResponse({'success': False, 'error': 'No matching sector found'}, status=404)
-
-                except Exception as e:
-                    return JsonResponse({'success': False, 'error': str(e)}, status=500)
-
         return [
             MountPoint('$', volume_graphs),
             MountPoint('get_factory_flights', get_factory_flights),
             MountPoint('get_single_flight', get_single_flight),
             MountPoint('dev_mode', dev_mode),
-            MountPoint('update_dev_db', update_dev_db),
-            MountPoint('delete_scrap_param', delete_scrap_param)
+            MountPoint('update_dev_db', update_dev_db)
             ]

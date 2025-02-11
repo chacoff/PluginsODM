@@ -6,7 +6,7 @@ from dataclasses import dataclass
 
 @dataclass()
 class Config:
-    _dev: bool = True
+    _dev: bool = False
     DB_DEV: str = 'postgresql+psycopg2://postgres:API@host.docker.internal:5432/scrap'
     DB_PROD: str = 'postgresql+psycopg2://postgres:ArcelorT3ch*2024!?@host.docker.internal:5432/Volumes_DB'
 

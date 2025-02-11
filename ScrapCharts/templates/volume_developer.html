@@ -144,46 +144,6 @@
     function deleteRow(button) {
             const row = button.closest("tr");
             row.remove();
-            // const sector = row.querySelector('input[name^="sector_"]').value;
-            // const csrfToken = getCSRFToken();
-            //
-            // if (confirm(`Are you sure you want to delete sector ${sector}?`)) {
-            //     fetch('/plugins/ScrapCharts/delete_scrap_param/', {
-            //         method: 'POST',
-            //         headers: {
-            //             'Content-Type': 'application/x-www-form-urlencoded',
-            //             'X-CSRFToken': csrfToken,
-            //         },
-            //         body: `sector=${encodeURIComponent(sector)}`
-            //     }).then(response => {
-            //         if (response.ok){
-            //             return response.json();
-            //         }
-            //         throw new Error(`HTTP error! Status: ${response.status}`)
-            //     }).then(result => {
-            //         if (result.success) {
-            //             row.remove();
-            //             const statusDiv = document.getElementById("status-message");
-            //             statusDiv.innerText = result.status;
-            //             statusDiv.style.color = "green";
-            //
-            //             setTimeout(() => {
-            //                 statusDiv.innerText = "";
-            //             }, 2500); // 2.5 s
-            //         } else {
-            //             const statusDiv = document.getElementById("status-message");
-            //             statusDiv.innerText = "Error: " + error.message;
-            //             statusDiv.style.color = "red";
-            //
-            //             setTimeout(() => {
-            //                 statusDiv.innerText = "";
-            //             }, 3500); // 3.5 s
-            //         }
-            //     }).catch(error => {
-            //         console.error('Error:', error);
-            //         alert('Failed to delete row');
-            //     });
-            // }
         }
 
     function getTableData() {

@@ -1,3 +1,4 @@
+import pandas as pd
 import requests
 from requests import Response
 from requests.exceptions import RequestException
@@ -132,3 +133,23 @@ def create_flight_list(data: list) -> list:
         ])
 
     return result[0]  # Return first list since all data is for same TaskID
+
+
+def create_flight_df(flight_list: list) -> pd.DataFrame:
+
+    df = pd.DataFrame({
+        'TaskID': [flight_list[0]] * len(flight_list[6]),  # Repeat TaskID for each pile
+        'FlightDay': [flight_list[1]] * len(flight_list[6]),
+        'Factory': [flight_list[2]] * len(flight_list[6]),
+        'Sector': [flight_list[3]] * len(flight_list[6]),
+        'UpdatedAt': [flight_list[4]] * len(flight_list[6]),
+        'Pilot': [flight_list[5]] * len(flight_list[6]),
+        'Pile': flight_list[6],
+        'Volume_ODM': flight_list[7],
+        'Volume_pix4d': flight_list[8],
+        'Volume_Delta': flight_list[9],
+        'Volume_Trench': flight_list[10],
+        'Volume_Total': flight_list[11]
+    })
+
+    return df
