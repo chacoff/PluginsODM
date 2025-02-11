@@ -118,6 +118,10 @@
                       <td class="text-muted pe-1">Date de vol:</td>
                       <td class="text-end fw-medium">${formattedDate}</td>
                     </tr>
+                    <tr>
+                      <td class="text-muted pe-1">Task ID:</td>
+                      <td class="text-end fw-medium">${_task_id}</td>
+                    </tr>
                   </tbody>
                 </table>`;
     }
@@ -155,12 +159,12 @@
             const cells = row.querySelectorAll("td input");
             const rowData = {
                 pile: cells[0].value.trim(),
-                baseMethod: cells[1].value.trim(),
-                reference: parseFloat(cells[2].value.trim()) || null,
-                ODM: parseFloat(cells[3].value.trim()) || null,
-                pix4d: parseFloat(cells[4].value.trim()) || null,
-                ditch: parseFloat(cells[5].value.trim()) || null,
-                total: parseFloat(cells[6].value.trim()) || null,
+                base_method: cells[1].value.trim(),
+                base_reference: parseFloat(cells[2].value.trim()) || null,
+                volume_odm: parseFloat(cells[3].value.trim()) || null,
+                volume_pix4d: parseFloat(cells[4].value.trim()) || null,
+                volume_trench: parseFloat(cells[5].value.trim()) || null,
+                volume_total: parseFloat(cells[6].value.trim()) || null,
                 updated_at: cells[7].value.trim()
             };
             data.push(rowData);
@@ -228,18 +232,18 @@
     function createDynamicInputs(container, rowData) {
         const fieldDefinitions = [
             { name: 'pile', type: 'text', readonly: false },
-            { name: 'baseMethod', type: 'text' },
-            { name: 'reference', type: 'number' },
+            { name: 'base_method', type: 'text' },
+            { name: 'base_reference', type: 'number' },
             //{ name: 'ditch', type: 'number' },
             //{ name: 'total', type: 'number' },
             //{ name: 'updated_at', type: 'datetime-local' },
             //{ name: 'ODM', type: 'number' },
             //{ name: 'pix4d', type: 'number' }
 
-			{ name: 'ODM', type: 'number' },
-            { name: 'pix4d', type: 'number' },
-            { name: 'ditch', type: 'number' },
-            { name: 'total', type: 'number' },
+			{ name: 'volume_odm', type: 'number' },
+            { name: 'volume_pix4d', type: 'number' },
+            { name: 'volume_trench', type: 'number' },
+            { name: 'volume_total', type: 'number' },
             { name: 'updated_at', type: 'datetime-local' }
         ];
 
