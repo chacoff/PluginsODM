@@ -260,7 +260,10 @@ export default class App{
         type: 'POST',
         url: url,
         data: JSON.stringify(data),
-        contentType: "application/json"
+        contentType: "application/json",
+        headers: {
+          "Authorization": "xeXRK2RPc5dZLTPp2z2s4eAhfMH01bOaIZsqxbTzys12dL65e8KvKvszlalaoxOZaMhJyPGTECSSRc2j7VkZdGeJZm5Ypu02pdSoxbrxzY875vugEQ5x3aVeQu2UTAcIDwWdrgaWzuzE8u3RUz6igD"
+        }
       });
     }
 
@@ -276,7 +279,10 @@ export default class App{
         $.ajax({
           type: 'GET',
           url: `http://localhost:3000/get/scraps/geojson/${getName().split(" / ")[0].toLowerCase()}/${id}`,
-          contentType: "application/json"
+          contentType: "application/json",
+          headers: {
+            "Authorization": "xeXRK2RPc5dZLTPp2z2s4eAhfMH01bOaIZsqxbTzys12dL65e8KvKvszlalaoxOZaMhJyPGTECSSRc2j7VkZdGeJZm5Ypu02pdSoxbrxzY875vugEQ5x3aVeQu2UTAcIDwWdrgaWzuzE8u3RUz6igD"
+          }
         }).done(result => {
           if (!result['error']) {
             if (importGeoJSONToMap(result) == 1) {
@@ -335,7 +341,9 @@ export default class App{
           measure.completedColor = 'yellow';
           measure.customValue = 0;
           measure.uniqueIdPolygon = "";
+          measure.baseMethod = "custom"
         }
+
         model.color = measure.activeColor
         if (measure.uniqueIdPolygon == "") {
           model.uniqueIdPolygon = uuidv4();
@@ -389,13 +397,37 @@ export default class App{
             model.color = selectedColor;
           }
         
-          // Ferme le dropdown
           $dropdownMenu.removeClass('open');
         });
 
         if (model && model.color) {
             model.color = measure.activeColor;
         }
+
+        const $hideButton = $('<button />')
+        .text('Hide Polygon')
+        .attr('style', 'margin: auto auto 0 0; background-color: #ddd; border: none; cursor: pointer; border-radius: 6px; padding: 5px 10px;')
+        .on('click', () => {
+          const isVisible = resultFeature.options.opacity !== 0;
+          
+          if (isVisible) {
+            resultFeature.setStyle({
+              opacity: 0,
+              fillOpacity: 0,
+            });
+
+            $hideButton.text('Show Polygon');
+          } else {
+            resultFeature.setStyle({
+              opacity: 1,
+              fillOpacity: 0.5,
+            });
+
+            $hideButton.text('Hide Polygon');
+          }
+        });
+
+        $popupFeatures.prepend($hideButton);
 
         const $customHeader = $(`<input style="margin: auto auto 0 0;" type="text" id="titleInput" value="${measure.options.labels.areaMeasurement}" />`);
         $popupFeatures.prepend($customHeader);
@@ -407,20 +439,17 @@ export default class App{
             model.title = this.iTitle;
           }
           $customHeader.find("#titleInput").val(this.iTitle);
+          const tooltip = resultFeature.getTooltip();
+          if (tooltip) {
+            tooltip.setContent(this.iTitle);
+          }
         });
 
         $popup.prepend($popupFeatures)
 
         $popup.children("ul.tasks").before($container);
-        model.title = measure.options.labels.areaMeasurement;
-        let areaPolygon = 0;
-        if (model.area == 0) {
-          areaPolygon = model.lengthDisplay;
-        } else {
-          areaPolygon = model.areaDisplay;
-        }
         
-        resultFeature.bindTooltip(areaPolygon, {
+        resultFeature.bindTooltip(measure.options.labels.areaMeasurement, {
           permanent: true,   
           direction: 'center', 
           className: 'styleMeasureMap' 
@@ -432,7 +461,6 @@ export default class App{
         })
 
         bringLinesToFront()
-
         ReactDOM.render(<MeasurePopup 
                             model={model}
                             resultFeature={resultFeature} 
@@ -524,25 +552,3 @@ export default class App{
     }
   }
 }
-
-
-
-
-
-// $.ajax({
-//   type: 'POST',
-//   url: `/api/plugins/VolumePlugingODM/task/file/load/${id}`,
-//   data: JSON.stringify({
-//     name: id,
-//   }),
-//   contentType: "application/json"
-// }).done(result => {
-//   if (!result['error']) {
-//     importGeoJSONToMap(result['geoJSON'])
-//     myToast.showToast('Chargement des informations reussi !', 'success');
-//     return
-//   } else {
-//     myToast.showToast("Il n'y a pas de polygon enregistré sur cette map", 'error');
-//   }
-// })
-// })();
