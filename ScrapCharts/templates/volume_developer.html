@@ -28,6 +28,8 @@
 {% if isDev %}
 <p>Hej, <b>{{ current_user }}</b>, you are in developer options. Here you have access to the volumes DB.</p>
 
+<br />
+
 {% csrf_token %}
 
 <div class="add-row">
@@ -54,7 +56,25 @@
 <!-- Content dev template -->
 
 <script>
-    // let rowCount = 0;
+	// Define it only if not already declared
+	
+	if (typeof _rawDate === 'undefined' || _rawDate === null || _rawDate === '') {
+		var _rawDate = "{{ date }}";
+	}
+	
+	if (typeof _factory === 'undefined') {
+		var _factory = "{{ factory }}";
+	}
+	
+	if (typeof _sector === 'undefined') {
+		var _sector = "{{ sector }}";
+	}
+	
+	if (typeof _task_id === 'undefined') {
+		var _task_id = "{{ task_id }}";
+	}
+	
+	// --
 
     initFlightInfo();
 
@@ -88,11 +108,11 @@
                   <tbody>
                     <tr>
                       <td class="text-muted pe-1">Secteur:</td>
-                      <td class="text-end fw-medium">{{ sector }}</td>
+                      <td class="text-end fw-medium">${_sector}</td>
                     </tr>
                     <tr>
                       <td class="text-muted pe-1">Usine:</td>
-                      <td class="text-end fw-medium">{{ factory }}</td>
+                      <td class="text-end fw-medium">${_factory}</td>
                     </tr>
                     <tr>
                       <td class="text-muted pe-1">Date de vol:</td>
@@ -103,6 +123,7 @@
     }
 
     function formatDateTime(inputDate) {
+		console.log("raw date tester: ", inputDate);
         const date = new Date(inputDate.replace(" ", "T")); // Convert to valid ISO format
         const options = { year: 'numeric', month: 'long', day: 'numeric' };
         const formattedDate = date.toLocaleDateString('en-US', options);
@@ -248,7 +269,7 @@
 
     function createDynamicInputs(container, rowData) {
         const fieldDefinitions = [
-            { name: 'pile', type: 'text', readonly: true },
+            { name: 'pile', type: 'text', readonly: false },
             { name: 'baseMethod', type: 'text' },
             { name: 'reference', type: 'number' },
             { name: 'ditch', type: 'number' },
@@ -256,6 +277,12 @@
             { name: 'updated_at', type: 'datetime-local' },
             { name: 'ODM', type: 'number' },
             { name: 'pix4d', type: 'number' }
+
+			// { name: 'ODM', type: 'number' },
+            // { name: 'pix4d', type: 'number' },
+            // { name: 'ditch', type: 'number' },
+            // { name: 'total', type: 'number' },
+            // { name: 'updated_at', type: 'datetime-local' }
         ];
 
         const values = typeof rowData === 'string' ? rowData.split(',') : (Array.isArray(rowData) ? rowData : []);

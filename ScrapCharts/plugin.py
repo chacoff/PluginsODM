@@ -12,14 +12,14 @@ from app.models import Project, Task
 from app.plugins import PluginBase, Menu, MountPoint
 
 import json
+from requests import Response
 from .image_processing import generate_mini_ortho
 from .webodm_access import (get_factory_access,
                             get_user_group,
-                            get_data_from_db,
                             get_projects_with_tasks,
-                            get_project_id_from_task_id,
-                            get_lookup_table)
+                            get_project_id_from_task_id)
 from .volumes_db import get_scrap_params, insert_to_scrap_params, delete_scrap_param_row
+from .backend_api import get_all_flights_per_factory, organize_flight_data, reorganize_data, get_flight_per_task_id, create_flight_list
 
 
 def init_urls() -> None:
@@ -73,16 +73,18 @@ class Plugin(PluginBase):
 
             factory = request.GET.get("factory", "")
 
-            db_data: dict = get_data_from_db(None, factory)
+            data: Response = get_all_flights_per_factory(factory)
+            organized_data: dict = organize_flight_data(data)
+            db_data: dict = reorganize_data(organized_data)
 
             return JsonResponse({
                 'task_ids': db_data['task_ids'],
-                'piles_array': db_data['piles_array'],
+                'piles_array': [],  # db_data['piles_array'],
                 'volumes_odm': db_data['volumes_odm'],
-                'volumes_pix4d': db_data['volumes_pix4d'],
-                'volumes_delta': db_data['volumes_delta'],
-                'volumes_trench': db_data['volumes_trench'],
-                'volumes_total': db_data['volumes_total'],
+                'volumes_pix4d': [],  # db_data['volumes_pix4d'],
+                'volumes_delta': [],  # db_data['volumes_delta'],
+                'volumes_trench': [],  # db_data['volumes_trench'],
+                'volumes_total': [],  # db_data['volumes_total'],
                 'flightList': db_data['flight_days'],
                 'factory': db_data['factory'],
                 'sector': db_data['sector'],
@@ -93,24 +95,26 @@ class Plugin(PluginBase):
         @login_required
         def get_single_flight(request):
 
-            flight_data = request.GET.get('flightData')
-            isDev = request.GET.get('isDev')
-
-            row_data = json.loads(flight_data) if flight_data else []
-            row_data[0] = row_data[0].strip()  # @bug fix: removes \t\t
+            _id = request.GET.get('id')
+            _isDev = request.GET.get('isDev')
+            _fact = request.GET.get('fact')
 
             project_and_tasks: list[dict] = get_projects_with_tasks()
-            project_id: int = get_project_id_from_task_id(project_and_tasks, row_data[0])
+            project_id: int = get_project_id_from_task_id(project_and_tasks, _id)
 
-            orto_jpg: str = f'/media/project/{project_id}/task/{row_data[0]}/assets/odm_orthophoto/odm_orthophoto.jpg'
+            data = get_flight_per_task_id(_fact, _id)
+            flight_data: list = create_flight_list(data)
 
-            row_data.append(project_id)
-            row_data.append(orto_jpg)
+            orto_jpg: str = f'/media/project/{project_id}/task/{_id}/assets/odm_orthophoto/odm_orthophoto.jpg'
+
+            flight_data.append(project_id)
+            flight_data.append(orto_jpg)
 
             # TODO: mini ortho is generating manually for now
             # generate_mini_ortho(project_id, row_data[0], row_data[3])
-            title: str = 'Rapport ' + row_data[2] + '-' + row_data[3]
-            args = {'row_data': row_data, 'title': title, 'isDev': isDev}
+
+            title: str = 'Rapport ' + _fact + '-'
+            args = {'row_data': flight_data, 'title': title, 'isDev': _isDev}
 
             return render(request, self.template_path('volume_graphs_single.html'), args)
 

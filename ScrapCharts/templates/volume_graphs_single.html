@@ -24,16 +24,10 @@
             <i class="fas fa-download"></i> Exporter au format CSV</button>
         <br/>
     </div>
-	
 	<div>
         <button onclick="exportToXLSX()" type="button" class="btn btn-primary">
             <i class="fas fa-download"></i> Exporter au format Excel</button>
         <br/>
-    </div>
-    <div id="devModeButton" style="display: none;">
-        <button type="button" class="btn btn-primary" onclick="openDevMode()">
-            <i class="fa fa-laptop-code"></i> Developer Options
-        </button>
     </div>
 </div>
 
@@ -56,10 +50,7 @@
 <br />
 
 <script>
-    const isDevTest = "{{ isDev }}" === "True";
-    if (isDevTest) {
-        document.getElementById('devModeButton').style.display = 'block';
-    }
+    console.log("{{ row_data }}");
 
     let chart = false;  // @jaime: false since is removed, but the JS is kept
 
@@ -72,8 +63,10 @@
     let _pilot = "{{ row_data.5 }}";
 
     // proper arrays in JS
-    let _odm = [{% for x in row_data.6 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
-    let _piles = [{% for x in row_data.7 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+    let _piles = [{% for x in row_data.6 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+
+    let _odm = [{% for x in row_data.7 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
+
     let _pix4d = [{% for x in row_data.8 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
     let _delta = [{% for x in row_data.9 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];
     let _trench = [{% for x in row_data.10 %}"{{ x }}"{% if not forloop.last %}, {% endif %}{% endfor %}];

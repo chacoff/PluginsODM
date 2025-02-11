@@ -54,7 +54,7 @@
     let pilot;
     let dataMap;
     let selectedFactory;
-    let isDev = "{{ isDev }}";
+    let	isDev = "{{ isDev }}"; // from python is coming as True
 
     updateAllFlights();
 
@@ -122,6 +122,14 @@
         if (gridInstance) {
                 gridInstance.destroy();
         }
+		
+		if (isDev == "True") {
+		   dev_button = false;
+		} else {
+		   dev_button = true;
+		}
+		
+		console.log("Hidden Dev button:", dev_button);
 
         const { h, createRef: gCreateRef } = gridjs;
         const opts = {
@@ -165,6 +173,20 @@
                         return chart;
                     }
                 },
+				{
+					name: 'Dev',
+					hidden: dev_button,
+                    sort: false,
+					formatter: (cell, row) => {
+						return h('button', {
+							className: 'py-2 mb-4 px-4 border rounded-md text-white bg-blue-600',
+							onClick: () => openDevMode(row.cells[0].data, // task_id hidden
+														row.cells[2].data, // factory
+														row.cells[1].data, // flightdate
+														row.cells[3].data) // sector
+						}, 'Edit');
+					}
+				},
                 {
                     name: 'Piles',
                     hidden: true
@@ -201,12 +223,30 @@
             },
         }).render(document.getElementById("wrapperTable"));
 
-        gridInstance.on('rowClick', (...args) => {
-            const rowData = args[1]?._cells?.map(cell => cell.data);
-            if (rowData) {
-                processRowData(rowData);
-            }
-        });
+        //gridInstance.on('rowClick', (...args) => {
+        //    const rowData = args[1]?._cells?.map(cell => cell.data);
+        //    if (rowData) {
+        //        processRowData(rowData);
+        //    }
+        //});
+		
+		gridInstance.on('rowClick', (event, row) => {
+			const excludedCells = ['Dev', 'dev']; // Indices of cells to ignore
+
+			const clickedTd = event.target.closest('td');
+			const columnId = clickedTd.getAttribute('data-column-id');
+			// console.log(columnId); // Debugging output
+
+			if (excludedCells.includes(columnId)) {
+				return;
+			}
+
+			const rowData = row?._cells?.map(cell => cell.data);
+			if (rowData) {
+				processRowData(rowData);
+			}
+		});
+		
     }
 	
 	const style = document.createElement('style');
@@ -216,6 +256,28 @@
 	  }
 	`;
 	document.head.appendChild(style);
+	
+	function openDevMode(dev_task_id, dev_factory, dev_rawDate, dev_sector) {
+		console.log(`Editing task_id, factory, rawDate and sector "${dev_task_id}" "${dev_factory}" "${dev_rawDate}" "${dev_sector}"`);
+		
+		fetch(`/plugins/ScrapCharts/dev_mode/?task_id=${dev_task_id}&factory=${dev_factory}&flightdate=${dev_rawDate}&sector=${dev_sector}`, {
+            method: 'GET',
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error('Network response was not ok');
+        })
+        .then(html => {
+            document.open();
+            document.write(html);
+            document.close();
+        })
+        .catch(error => {
+            console.error('Error fetching new page:', error);
+        });
+	}
 
     function processRowData(rowData) {
         console.log('Processing Row Data:', rowData);
@@ -223,7 +285,7 @@
 
         sessionStorage.setItem("processRowData", JSON.stringify(rowData));
 
-        fetch(`/plugins/ScrapCharts/get_single_flight?flightData=${encodeURIComponent(JSON.stringify(rowData))}&isDev=${isDev}`)
+        fetch(`/plugins/ScrapCharts/get_single_flight?id=${rowData[0]}&isDev=${isDev}&fact=${rowData[2]}`)
             .then(response => {
                 if (!response.ok) throw new Error('Failed to fetch page');
                     return response.text();
