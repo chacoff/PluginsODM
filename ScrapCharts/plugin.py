@@ -98,7 +98,7 @@ class Plugin(PluginBase):
 
         @login_required
         def dev_mode(request):
-            """ renders page with the options for developer, i.e., parameters for orthomosaic """
+            """ renders page with the options for developer """
 
             task_id: str = request.GET.get('task_id')
             factory: str = request.GET.get('factory')
@@ -107,8 +107,8 @@ class Plugin(PluginBase):
 
             groups: list[bool] = get_user_group(request)
 
-            data = get_flight_per_task_id(factory, task_id)
-            df = create_flight_df(data)
+            data: Response = get_flight_per_task_id(factory, task_id)
+            df: dict = create_flight_df(data)
 
             args: dict = {
                 'current_user': request.user,

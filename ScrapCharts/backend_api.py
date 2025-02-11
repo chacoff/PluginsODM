@@ -135,21 +135,22 @@ def create_flight_list(data: list) -> list:
     return result[0]  # Return first list since all data is for same TaskID
 
 
-def create_flight_df(flight_list: list) -> pd.DataFrame:
+def create_flight_df(data: Response) -> dict:
+    df = pd.DataFrame(data)
+    print(df.columns.tolist())
 
-    df = pd.DataFrame({
-        'TaskID': [flight_list[0]] * len(flight_list[6]),  # Repeat TaskID for each pile
-        'FlightDay': [flight_list[1]] * len(flight_list[6]),
-        'Factory': [flight_list[2]] * len(flight_list[6]),
-        'Sector': [flight_list[3]] * len(flight_list[6]),
-        'UpdatedAt': [flight_list[4]] * len(flight_list[6]),
-        'Pilot': [flight_list[5]] * len(flight_list[6]),
-        'Pile': flight_list[6],
-        'Volume_ODM': flight_list[7],
-        'Volume_pix4d': flight_list[8],
-        'Volume_Delta': flight_list[9],
-        'Volume_Trench': flight_list[10],
-        'Volume_Total': flight_list[11]
-    })
+    df['TaskID'] = df['TaskID'].str.strip()
 
-    return df
+    df['UpdatedAt'] = pd.to_datetime(df['UpdatedAt'], format='ISO8601')
+    df['Flightday'] = pd.to_datetime(df['Flightday'], format='ISO8601')
+
+    df['Flightday'] = df['Flightday'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+    df['UpdatedAt'] = df['UpdatedAt'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+
+    to_drop: list[str] = ['Flightday', 'Counter', 'TaskID', 'Sector', 'Factory', 'Polygon', 'Area',
+                          'Length', 'Volume_Delta', 'Pilot', 'Reviewer', 'Type', 'Color', 'UniqueIdPolygon']
+    df = df.drop(columns=to_drop, axis=1)
+
+    print(df)
+
+    return df.to_dict(orient="split")

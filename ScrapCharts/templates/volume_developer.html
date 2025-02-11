@@ -152,18 +152,16 @@
         const data = [];
 
         rows.forEach((row) => {
-            const cells = row.querySelectorAll("td");
+            const cells = row.querySelectorAll("td input");
             const rowData = {
-                sector: cells[0].querySelector("input").value.trim(),
-                angle: parseInt(cells[1].querySelector("input").value.trim(), 10) || null,
-                crop_left: parseInt(cells[2].querySelector("input").value.trim(), 10) || null,
-                crop_top: parseInt(cells[3].querySelector("input").value.trim(), 10) || null,
-                crop_right: parseInt(cells[4].querySelector("input").value.trim(), 10) || null,
-                crop_bottom: parseInt(cells[5].querySelector("input").value.trim(), 10) || null,
-                scale: parseFloat(cells[6].querySelector("input").value.trim()) || null,
-                quality: parseInt(cells[7].querySelector("input").value.trim(), 10) || null,
-                reviewer: cells[8].querySelector("input").value.trim(),
-                updated_at: cells[9].querySelector("input").value.trim()
+                pile: cells[0].value.trim(),
+                baseMethod: cells[1].value.trim(),
+                reference: parseFloat(cells[2].value.trim()) || null,
+                ODM: parseFloat(cells[3].value.trim()) || null,
+                pix4d: parseFloat(cells[4].value.trim()) || null,
+                ditch: parseFloat(cells[5].value.trim()) || null,
+                total: parseFloat(cells[6].value.trim()) || null,
+                updated_at: cells[7].value.trim()
             };
             data.push(rowData);
         });
@@ -232,17 +230,17 @@
             { name: 'pile', type: 'text', readonly: false },
             { name: 'baseMethod', type: 'text' },
             { name: 'reference', type: 'number' },
+            //{ name: 'ditch', type: 'number' },
+            //{ name: 'total', type: 'number' },
+            //{ name: 'updated_at', type: 'datetime-local' },
+            //{ name: 'ODM', type: 'number' },
+            //{ name: 'pix4d', type: 'number' }
+
+			{ name: 'ODM', type: 'number' },
+            { name: 'pix4d', type: 'number' },
             { name: 'ditch', type: 'number' },
             { name: 'total', type: 'number' },
-            { name: 'updated_at', type: 'datetime-local' },
-            { name: 'ODM', type: 'number' },
-            { name: 'pix4d', type: 'number' }
-
-			// { name: 'ODM', type: 'number' },
-            // { name: 'pix4d', type: 'number' },
-            // { name: 'ditch', type: 'number' },
-            // { name: 'total', type: 'number' },
-            // { name: 'updated_at', type: 'datetime-local' }
+            { name: 'updated_at', type: 'datetime-local' }
         ];
 
         const values = typeof rowData === 'string' ? rowData.split(',') : (Array.isArray(rowData) ? rowData : []);
