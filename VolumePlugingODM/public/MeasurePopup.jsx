@@ -37,7 +37,7 @@ export default class MeasurePopup extends React.Component {
     this.state = {
         featureType,
         volume: null, // to be calculated,
-        baseMethod: props.baseMethod || "triangulate",
+        baseMethod: props.baseMethod || "custom",
         task: null,
         error: "",
         customValue: props.customValue,
