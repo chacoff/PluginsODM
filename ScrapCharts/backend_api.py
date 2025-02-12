@@ -148,7 +148,7 @@ def create_flight_df(data: Response) -> dict:
     df['UpdatedAt'] = df['UpdatedAt'].dt.strftime('%Y-%m-%dT%H:%M:%S')
 
     to_drop: list[str] = ['Flightday', 'Counter', 'TaskID', 'Sector', 'Factory', 'Polygon', 'Area',
-                          'Length', 'Volume_Delta', 'Pilot', 'Reviewer', 'Type', 'Color', 'UniqueIdPolygon']
+                          'Length', 'Volume_Delta', 'Pilot', 'Reviewer', 'Type', 'Color']
     df = df.drop(columns=to_drop, axis=1)
 
     print(df)

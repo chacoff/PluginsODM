@@ -158,6 +158,9 @@
         rows.forEach((row) => {
             const cells = row.querySelectorAll("td input");
             const rowData = {
+                taskid: _task_id,
+                factory: _factory,
+                sector: _sector,
                 pile: cells[0].value.trim(),
                 base_method: cells[1].value.trim(),
                 base_reference: parseFloat(cells[2].value.trim()) || null,
@@ -165,7 +168,8 @@
                 volume_pix4d: parseFloat(cells[4].value.trim()) || null,
                 volume_trench: parseFloat(cells[5].value.trim()) || null,
                 volume_total: parseFloat(cells[6].value.trim()) || null,
-                updated_at: cells[7].value.trim()
+                UniqueIdPolygon: cells[7].value.trim(),
+                updated_at: cells[8].value.trim()
             };
             data.push(rowData);
         });
@@ -244,6 +248,7 @@
             { name: 'volume_pix4d', type: 'number' },
             { name: 'volume_trench', type: 'number' },
             { name: 'volume_total', type: 'number' },
+            { name: 'UniqueIdPolygon', type: 'text', readonly: true },
             { name: 'updated_at', type: 'datetime-local' }
         ];
 
