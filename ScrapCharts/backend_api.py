@@ -10,19 +10,25 @@ from .config import Config
 c: Config = Config()
 
 URL: str = c.get_api_url()
+URL_POST: str = c.get_post_url()
 TOKEN: str = c.get_token()
 HEADERS: dict = c.get_headers()
 
 
-def get_all_flights_per_factory(_factory: str) -> Response:
-
-    _fact: str = ''
+def factory_format(_factory) -> str:
 
     if _factory == 'Belval':
-        _fact = 'blv'
+        return 'blv'
 
     if _factory == 'Differdange':
-        _fact = 'diff'
+        return 'diff'
+
+    return ''
+
+
+def get_all_flights_per_factory(_factory: str) -> Response:
+
+    _fact: str = factory_format(_factory)
 
     url: str = f'{URL}/all/scraps/{_fact}'
 
@@ -137,7 +143,7 @@ def create_flight_list(data: list) -> list:
 
 def create_flight_df(data: Response) -> dict:
     df = pd.DataFrame(data)
-    print(df.columns.tolist())
+    # print(df.columns.tolist())
 
     df['TaskID'] = df['TaskID'].str.strip()
 
@@ -151,6 +157,17 @@ def create_flight_df(data: Response) -> dict:
                           'Length', 'Volume_Delta', 'Pilot', 'Reviewer', 'Type', 'Color']
     df = df.drop(columns=to_drop, axis=1)
 
-    print(df)
+    # print(df)
 
     return df.to_dict(orient="split")
+
+
+def update_db_via_dev(_factory: str, _data: Response) -> Response:
+
+    _fact: str = _factory.lower()
+
+    url: str = f'{URL_POST}/{_fact}'
+
+    response = requests.post(url, headers=HEADERS, json=_data, timeout=10)
+
+    return response.json()

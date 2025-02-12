@@ -19,7 +19,8 @@ from .backend_api import (get_all_flights_per_factory,
                           organize_flight_data,
                           reorganize_data,
                           create_flight_list,
-                          create_flight_df)
+                          create_flight_df,
+                          update_db_via_dev)
 
 
 class Plugin(PluginBase):
@@ -129,13 +130,12 @@ class Plugin(PluginBase):
         @login_required
         def update_dev_db(request):
             _factory = request.GET.get('factory')
-            print(_factory)
 
             if request.method == "POST":
                 try:
-                    data: list[dict[any]] = json.loads(request.body)
+                    data: Response = json.loads(request.body)  # list[dict[any]]
 
-                    print(data)
+                    _response: Response = update_db_via_dev(_factory, data)
 
                     return JsonResponse({'status': 'successfully updated the DB'})
                 except json.JSONDecodeError:
