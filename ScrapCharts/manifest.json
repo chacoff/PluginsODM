@@ -2,7 +2,7 @@
   "name": "VolumeGraphs",
   "webodmMinVersion": "0.1.0",
   "description": "A plugin to show charts of volumes",
-  "version": "0.0.2",
+  "version": "0.1.3",
   "author": "Jaime Chacoff",
   "email": "jaime.gomez@usach.cl",
   "repository": "https://github.com/OpenDroneMap/WebODM",

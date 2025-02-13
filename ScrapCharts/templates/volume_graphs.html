@@ -6,14 +6,14 @@
 <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css" rel="stylesheet">
 
-<h2>{% trans 'Rapports de volume' %}</h2>
+<h2>{% trans 'Rapports de volume' %} <small>v0.1.3</small></h2>
 <br />
 
 <!-- Dropbox menu -->
 <div style="display: flex; align-items: center; gap: 20px;">
     <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">sélectionner la source:</div>
     <div>
-        <select class="form-control" id="factoryDropdown">
+        <select class="form-control" id="factoryDropdown" onchange="updateAllFlights()">
             {% for factory in factory_access %}
             <option value="{{ factory }}">{{ factory }}</option>
             {% endfor %}
@@ -21,7 +21,7 @@
     </div>
     <div>
         <button class="btn btn-primary" onclick="updateAllFlights()">
-            <i class="fas fa-sync"></i> {% trans "Charger les données" %}
+            <i class="fas fa-sync"></i> {% trans "Actualiser les données" %}
         </button>
     </div>
 </div>
