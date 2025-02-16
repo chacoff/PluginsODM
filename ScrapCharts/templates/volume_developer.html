@@ -9,8 +9,8 @@
             <i class="fas fa-undo"></i> Return</button><br />
     </div>
     <div>
-        <button onclick="updateTableData()" type="button" class="btn btn-primary">
-            <i class="fas fa-database"></i> Update DB</button><br />
+        <button onclick="" type="button" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Upload Orthomosaic</button><br />
     </div>
     <div>
         <button onclick="refreshDevMode()" type="button" class="btn btn-primary">
@@ -66,8 +66,8 @@
         </tbody>
     </table>
     <br />
-    <button type="button" class="btn btn-default" onClick="appendRow()">Add Row</button>
-    <button type="button" class="btn btn-default" onClick="">Upload Orthomosaic</button>
+    <button type="button" class="btn btn-default" onClick="appendRow()"><i class="fas fa-plus"></i> Add Row</button>
+    <button type="button" class="btn btn-default" onclick="updateTableData()"><i class="fas fa-database"></i> Update DB</button>
 </div>
 <br />
 
@@ -178,6 +178,7 @@
             const cells = row.querySelectorAll("td input");
             const rowData = {
                 taskid: _task_id,
+                flightday: _rawDate,
                 factory: _factory,
                 sector: _sector,
                 pile: cells[0].value.trim(),
@@ -200,6 +201,7 @@
     function updateTableData() {
         const data = getTableData();
         const csrfToken = getCSRFToken();
+        console.log(data);
 
         fetch(`/plugins/ScrapCharts/update_dev_db/?factory=${_factory}`, {
             method: "POST",
@@ -274,6 +276,7 @@
         }
 
         const nameId = values[0] || 'new';
+        values[8] = values[8] || generateUUID(); // Generate UUID when adding rows
 
         values.forEach((value, index) => {
             const field = fieldDefinitions[index];
@@ -365,6 +368,10 @@
 
             totalInput.value = total.toFixed(2);
         }
+    }
+
+    function generateUUID() {
+        return crypto.randomUUID(); // Generates a valid UUID
     }
 
 </script>
