@@ -67,9 +67,7 @@
     </table>
     <br />
     <button type="button" class="btn btn-default" onClick="appendRow()">Add Row</button>
-    <button type="button" class="btn btn-default" onClick="calculateVolumeDelta()">Calculate Deltas</button>
-    <button type="button" class="btn btn-default" onClick="calculateVolumeTotal()">Calculate Total</button>
-    <button type="button" class="btn btn-default" onClick="appendRow()">Upload Orthomosaic</button>
+    <button type="button" class="btn btn-default" onClick="">Upload Orthomosaic</button>
 </div>
 <br />
 
@@ -288,6 +286,12 @@
             input.className = 'form-control';
             if (field.readonly) input.readOnly = true;
 
+            if (['volume_odm', 'volume_pix4d', 'volume_trench'].includes(field.name)) {
+                input.addEventListener('input', function () {
+                    calculationLogics(this);
+                });
+            }
+
             td.appendChild(input);
             container.appendChild(td);
         });
@@ -302,60 +306,65 @@
         container.appendChild(deleteCell);
     }
 
-    function calculateVolumeDelta() {
+    function calculationLogics(inputElement){
 
-        const deltaReference = document.getElementById('delta_reference').value;
-        const rows = document.querySelectorAll('.data-row');
+        console.log(`Value changed in ${inputElement.name}:`, inputElement.value);
+        const row = inputElement.closest('tr');
 
-        rows.forEach(row => {
-            const odmInput = row.querySelector('input[name^="volume_odm_"]');
-            const pix4dInput = row.querySelector('input[name^="volume_pix4d_"]');
-            const deltaInput = row.querySelector('input[name^="volume_delta_"]');
+        const odmInput = row.querySelector('input[name^="volume_odm_"]');
+        const pix4dInput = row.querySelector('input[name^="volume_pix4d_"]');
+        const trenchInput = row.querySelector('input[name^="volume_trench_"]');
 
-            if (odmInput && pix4dInput && deltaInput) {
-                const odmValue = parseFloat(odmInput.value) || 0;
-                const pix4dValue = parseFloat(pix4dInput.value) || 0;
+        const odmValue = parseFloat(odmInput?.value) || 0;
+        const pix4dValue = parseFloat(pix4dInput?.value) || 0;
+        const trenchValue = parseFloat(trenchInput?.value) || 0;
 
-                let delta;
-                if (deltaReference === 'odm_volume') {
-                    delta = ((odmValue - pix4dValue) / odmValue) * 100;
-                } else {
-                    delta = ((pix4dValue - odmValue) / pix4dValue) * 100;
-                }
+        if (inputElement.name.includes("volume_trench") ||
+            inputElement.name.includes("volume_pix4d") ||
+            inputElement.name.includes("volume_odm")) {
+            calculateVolumeTotal(odmValue, pix4dValue, trenchValue, row);
+        }
 
-                deltaInput.value = delta.toFixed(2);
-            }
-        });
+        if (inputElement.name.includes("volume_pix4d") ||
+            inputElement.name.includes("volume_odm")) {
+            calculateVolumeDelta(odmValue, pix4dValue, row);
+        }
     }
 
-    function calculateVolumeTotal() {
+    function calculateVolumeDelta(odmValue, pix4dValue, row) {
+        let delta;
+        const deltaReference = document.getElementById('delta_reference').value;
+        console.log(`Current Reference: ${deltaReference}`);
 
-        const totalReference = document.getElementById('total_reference').value;
-        const rows = document.querySelectorAll('.data-row');
+        if (row) {
+            const deltaInput = row.querySelector('input[name^="volume_delta_"]');
 
-        console.log(totalReference);
-        rows.forEach(row => {
-            const odmInput = row.querySelector('input[name^="volume_odm_"]');
-            const pix4dInput = row.querySelector('input[name^="volume_pix4d_"]');
-            const trenchInput = row.querySelector('input[name^="volume_trench_"]');
-            const totalInput = row.querySelector('input[name^="volume_total_"]');
-            console.log(trenchInput);
-
-            if (odmInput && pix4dInput && totalInput) {
-                const odmValue = parseFloat(odmInput.value) || 0;
-                const pix4dValue = parseFloat(pix4dInput.value) || 0;
-                const trenchValue = parseFloat(trenchInput.value) || 0;
-
-                let total;
-                if (totalReference === 'odm_total') {
-                    total = (odmValue + trenchValue);
-                } else {
-                    total = (pix4dValue + trenchValue);
-                }
-
-                totalInput.value = total.toFixed(2);
+            if (deltaReference === 'odm_volume') {
+                delta = ((odmValue - pix4dValue) / odmValue) * 100;
+            } else {
+                delta = ((pix4dValue - odmValue) / pix4dValue) * 100;
             }
-        });
+
+            deltaInput.value = delta.toFixed(2);
+        }
+    }
+
+    function calculateVolumeTotal(odmValue, pix4dValue, trenchValue, row) {
+        let total;
+        const totalReference = document.getElementById('total_reference').value;
+        console.log(`Current Reference: ${totalReference}`);
+
+        if (row) {
+            const totalInput = row.querySelector('input[name^="volume_total_"]');
+
+            if (totalReference === 'odm_total') {
+                total = (odmValue + trenchValue);
+            } else {
+                total = (pix4dValue + trenchValue);
+            }
+
+            totalInput.value = total.toFixed(2);
+        }
     }
 
 </script>
