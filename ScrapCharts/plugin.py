@@ -38,7 +38,7 @@ class Plugin(PluginBase):
             if not factory_access:
                 print(f'Error getting data from db. Factory Access: {factory_access}. Most likely is empty.')
                 args = {'error': 'Factory access is unknown. Most likely user does not belong to any group.',
-                        'title': 'Drone Reporting'}
+                        'title': 'Rapport error --'}
                 return render(request, self.template_path("volume_error.html"), args)
 
             args = {
@@ -48,7 +48,8 @@ class Plugin(PluginBase):
                 'isGlobal': groups[2],
                 'isDev': groups[3],
                 'factory_access': factory_access,
-                'title': 'Volumes Rapports'
+                'title': 'Volumes Rapports',
+                'error': None
             }
 
             return render(request, self.template_path('volume_graphs.html'), args)
@@ -60,6 +61,14 @@ class Plugin(PluginBase):
             factory = request.GET.get("factory", "")
 
             data: Response = get_all_flights_per_factory(factory)
+
+            if not data:
+                print(f'data is {data}: endPoint down.')
+                args = {'error': f'The endPoint answered: {data}. '
+                                 f'It might be down, not accessible or {factory} DB is empty.',
+                        'title': 'Rapport error --'}
+                return JsonResponse(args)
+
             organized_data: dict = organize_flight_data(data)
             db_data: dict = reorganize_data(organized_data)
 
@@ -75,7 +84,8 @@ class Plugin(PluginBase):
                 'factory': db_data['factory'],
                 'sector': db_data['sector'],
                 'updated_at': db_data['updated_at'],
-                'pilot': db_data['pilot']
+                'pilot': db_data['pilot'],
+                'error': None
             })
 
         @login_required
@@ -85,7 +95,7 @@ class Plugin(PluginBase):
             _isDev = request.GET.get('isDev')
             _fact = request.GET.get('fact')
 
-            data = get_flight_per_task_id(_fact, _id)
+            data: Response = get_flight_per_task_id(_fact, _id)
             flight_data: list = create_flight_list(data)
 
             orto_jpg: str = f'/media/CACHE/images/settings/orthos/{_id}.jpg'

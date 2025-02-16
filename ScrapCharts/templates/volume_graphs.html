@@ -6,9 +6,13 @@
 <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.css" rel="stylesheet">
 
-<h2>{% trans 'Rapports de volume' %} <small>v0.1.3</small></h2>
-<br />
+<h2>{% trans 'Rapports de volume' %} <small>v0.1.4</small></h2>
 
+{% if isDev %}
+<p><b>** You are a DronesLPL developer, choose a report to modify its values</b></p>
+{% endif %}
+
+<br />
 <!-- Dropbox menu -->
 <div style="display: flex; align-items: center; gap: 20px;">
     <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">sélectionner la source:</div>
@@ -29,11 +33,9 @@
 
 <br />
 
-{% if isDev %}
-<p><b>** You are a DronesLPL developer, choose a report to modify its values</b></p>
-{% endif %}
-
+<div id="errorBlock"></div>
 <div id="wrapperTable"></div>
+
 
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/chartist.js/latest/chartist.min.js"></script>
@@ -50,11 +52,14 @@
     let delta;
     let trench;
     let total;
+    let err;
     let updateAt;
     let pilot;
     let dataMap;
     let selectedFactory;
     let	isDev = "{{ isDev }}"; // from python is coming as True
+    let dev_button;
+    let errorBlock = document.getElementById("errorBlock");
 
     updateAllFlights();
 
@@ -96,6 +101,7 @@
                     trench = data.volumes_trench;
                     total = data.volumes_total;
                     piles = data.piles_array;
+                    err = data.error;
                     dataMap = flightList.map((_, index) => [
                         task_ids[index],    // 0
                         flightList[index],  // 1
@@ -112,8 +118,15 @@
                     ]);
 
                     initTable(dataMap);
+                    errorBlock.innerHTML = "";
+                    errorBlock.className = "";
+
                 })
-                .catch(error => console.error('Error fetching data:', error));
+                .catch(error => {
+                    console.error('Error fetching data:', error)
+                    errorBlock.innerHTML = err;
+                    errorBlock.className = "alert alert-warning";
+                });
         }
     }
 
