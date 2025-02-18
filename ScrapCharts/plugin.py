@@ -17,7 +17,6 @@ from .webodm_access import get_factory_access, get_user_group
 from .backend_api import (get_all_flights_per_factory,
                           get_flight_per_task_id,
                           organize_flight_data,
-                          reorganize_data,
                           create_flight_list,
                           create_flight_df,
                           update_db_via_dev)
@@ -63,14 +62,20 @@ class Plugin(PluginBase):
             data: Response = get_all_flights_per_factory(factory)
 
             if not data:
-                print(f'data is {data}: endPoint down.')
+                print(f'[info] data is {data}: endPoint down.')
                 args = {'error': f'The endPoint answered: {data}. '
                                  f'It might be down, not accessible or {factory} DB is empty.',
                         'title': 'Rapport error --'}
                 return JsonResponse(args)
 
-            organized_data: dict = organize_flight_data(data)
-            db_data: dict = reorganize_data(organized_data)
+            try:
+                db_data: dict = organize_flight_data(data)
+            except BaseException as e:
+                print(f'[info] Error processing data: {e}')
+                args = {'error': f'Error while processing the data. Most likely is due to uninformed DB changes.',
+                        'title': 'Rapport error --'}
+                return JsonResponse(args)
+
 
             return JsonResponse({
                 'task_ids': db_data['task_ids'],

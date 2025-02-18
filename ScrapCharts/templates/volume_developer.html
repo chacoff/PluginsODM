@@ -177,7 +177,7 @@
         rows.forEach((row) => {
             const cells = row.querySelectorAll("td input");
             const rowData = {
-                taskid: _task_id,
+                task_id: _task_id,
                 flightday: _rawDate,
                 factory: _factory,
                 sector: _sector,
@@ -189,7 +189,7 @@
                 volume_delta: parseFloat(cells[5].value.trim()) || null,
                 volume_trench: parseFloat(cells[6].value.trim()) || null,
                 volume_total: parseFloat(cells[7].value.trim()) || null,
-                UniqueIdPolygon: cells[8].value.trim(),
+                unique_id_polygon: cells[8].value.trim(),
                 updated_at: cells[9].value.trim()
             };
             data.push(rowData);

@@ -71,7 +71,7 @@ def perform_request(_url: str):
 def group_by_task_id(data: Response):
     grouped = defaultdict(list)
     for item in data:
-        task_id = item.get('TaskID')  # Adjust field name if different
+        task_id = item.get('task_id')  # Adjust field name if different
         grouped[task_id].append(item)
     return dict(grouped)
 
@@ -82,31 +82,26 @@ def organize_flight_data(data: Response) -> Dict:
     organized: dict = {}
 
     for item in data:
-        task_id = item.get('TaskID')
+        task_id = item.get('task_id')
         if task_id not in organized:
             organized[task_id] = {
                 'flightday': item.get('flightday'),
                 'factory': item.get('factory'),
                 'sector': item.get('sector'),
                 'pilot': item.get('pilot'),
-                'updatedAt': item.get('updatedAt'),
+                'updated_at': item.get('updated_at'),
                 'volumes_odm': []
             }
         organized[task_id]['volumes_odm'].append(item.get('volume_odm'))
 
-    return organized
-
-
-def reorganize_data(data: dict) -> dict:
-
     return {
-        'task_ids': list(data.keys()),
-        'volumes_odm': [item['volumes_odm'] for item in data.values()],
-        'flight_days': [item['flightday'].split('.')[0] for item in data.values()],
-        'factory': [item['factory'] for item in data.values()],
-        'sector': [item['sector'] for item in data.values()],
-        'updated_at': [item['updatedAt'].split('.')[0] for item in data.values()],
-        'pilot': [item['pilot'] for item in data.values()]
+        'task_ids': list(organized.keys()),
+        'volumes_odm': [item['volumes_odm'] for item in organized.values()],
+        'flight_days': [item['flightday'].split('.')[0] for item in organized.values()],
+        'factory': [item['factory'] for item in organized.values()],
+        'sector': [item['sector'] for item in organized.values()],
+        'updated_at': [item['updated_at'].split('.')[0] for item in organized.values()],
+        'pilot': [item['pilot'] for item in organized.values()]
     }
 
 
@@ -116,22 +111,22 @@ def create_flight_list(data: list) -> list:
     grouped = defaultdict(lambda: defaultdict(list))
 
     for item in data:
-        grouped[item['TaskID']]['piles'].append(item['pile'])
-        grouped[item['TaskID']]['volume_odm'].append(item['volume_odm'])
-        grouped[item['TaskID']]['volume_pix4d'].append(item['volume_pix4d'])
-        grouped[item['TaskID']]['volume_delta'].append(item['volume_delta'])
-        grouped[item['TaskID']]['volume_trench'].append(item['volume_trench'])
-        grouped[item['TaskID']]['volume_total'].append(item['volume_total'])
+        grouped[item['task_id']]['piles'].append(item['pile'])
+        grouped[item['task_id']]['volume_odm'].append(item['volume_odm'])
+        grouped[item['task_id']]['volume_pix4d'].append(item['volume_pix4d'])
+        grouped[item['task_id']]['volume_delta'].append(item['volume_delta'])
+        grouped[item['task_id']]['volume_trench'].append(item['volume_trench'])
+        grouped[item['task_id']]['volume_total'].append(item['volume_total'])
 
     result = []
     for task_id, volumes in grouped.items():
-        first_item = next(item for item in data if item['TaskID'] == task_id)
+        first_item = next(item for item in data if item['task_id'] == task_id)
         result.append([
             task_id,
             first_item['flightday'],
             first_item['factory'],
             first_item['sector'],
-            first_item['updatedAt'].split('.')[0],
+            first_item['updated_at'].split('.')[0],
             first_item['pilot'],
             volumes['piles'],
             volumes['volume_odm'],
@@ -150,15 +145,15 @@ def create_flight_df(data: Response) -> dict:
     df = pd.DataFrame(data)
     # print(df.columns.tolist())
 
-    df['TaskID'] = df['TaskID'].str.strip()
+    df['task_id'] = df['task_id'].str.strip()
 
-    df['updatedAt'] = pd.to_datetime(df['updatedAt'], format='ISO8601')
+    df['updated_at'] = pd.to_datetime(df['updated_at'], format='ISO8601')
     df['flightday'] = pd.to_datetime(df['flightday'], format='ISO8601')
 
     df['flightday'] = df['flightday'].dt.strftime('%Y-%m-%dT%H:%M:%S')
-    df['updatedAt'] = df['updatedAt'].dt.strftime('%Y-%m-%dT%H:%M:%S')
+    df['updated_at'] = df['updated_at'].dt.strftime('%Y-%m-%dT%H:%M:%S')
 
-    to_drop: list[str] = ['flightday', 'Counter', 'TaskID', 'sector', 'factory', 'polygon', 'area',
+    to_drop: list[str] = ['flightday', 'counter', 'task_id', 'sector', 'factory', 'polygon', 'area',
                           'length', 'pilot', 'reviewer', 'type', 'color']
     df = df.drop(columns=to_drop, axis=1)
 
@@ -171,6 +166,8 @@ def update_db_via_dev(_factory: str, _data: Response) -> Response:
     _fact: str = _factory.lower()
 
     url: str = f'{URL_POST}/{_fact}'
+
+    print(_data)
 
     response = requests.post(url, headers=HEADERS, json=_data, timeout=10)
 

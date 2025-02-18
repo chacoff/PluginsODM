@@ -22,7 +22,7 @@ copy "!SOURCE_FOLDER!templates\volume_developer.html" "!TEMP_FOLDER!\templates\"
 rem copy "!SOURCE_FOLDER!__init__.py" "!TEMP_FOLDER!\"
 rem copy "!SOURCE_FOLDER!manifest.json" "!TEMP_FOLDER!\"
 rem copy "!SOURCE_FOLDER!plugin.py" "!TEMP_FOLDER!\"
-rem copy "!SOURCE_FOLDER!backend_api.py" "!TEMP_FOLDER!\"
+copy "!SOURCE_FOLDER!backend_api.py" "!TEMP_FOLDER!\"
 rem copy "!SOURCE_FOLDER!config.py" "!TEMP_FOLDER!\"
 rem copy "!SOURCE_FOLDER!webodm_access.py" "!TEMP_FOLDER!\"
 
