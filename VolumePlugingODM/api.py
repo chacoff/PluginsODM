@@ -109,28 +109,34 @@ class LoadFile(TaskView):
         factoryname=data["fsf"].split(" / ")[0].lower()
         id=data["TaskID"]
 
-        # try:
-        #     cwd = os.getcwd()
-        #     file_path = f'{cwd}/coreplugins/VolumePlugingODM/volumesfiles/{data["name"]}.geojson'
-        #     directory = os.path.dirname(file_path)
-        #     if not os.path.exists(directory):
-        #         return
-        #     with open(file_path, 'r', encoding='utf-8') as file:
-        #         geojson = json.load(file)
-        #     print(f"Fichier load avec succès à : {file_path}")
-        #     return Response({'geoJSON' : geojson}, status=status.HTTP_200_OK)
-        # except json.JSONDecodeError as e:
-        #     return Response({'error': f"Erreur de décodage JSON : {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
-        # except Exception as e:
-        #     return Response({'error': str(e)}, status=status.HTTP_200_OK)
-
         try:
             url = f'{URL}/get/scraps/geojson/{factoryname}/{id}'
             response_get = requests.get(url, headers=HEADERS)
-            if response_get.status_code == 200:
-                data_get = response_get.json()
+            if response_get.status_code != 200:
+                try:
+                    cwd = os.getcwd()
+                    folder_path = f'{cwd}/app/static/app/volumesfiles/{id}/'
+
+                    if not os.path.exists(folder_path) or not os.path.isdir(folder_path):
+                        return Response({'error': 'Le dossier n\'existe pas'}, status=status.HTTP_400_BAD_REQUEST)
+
+                    files = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.geojson')]
+                    print(files)
+                    if not files:
+                        return Response({'error': 'Aucun fichier trouvé'}, status=status.HTTP_404_NOT_FOUND)
+
+                    oldest_file = max(files, key=os.path.getctime)
+
+                    with open(oldest_file, 'r', encoding='utf-8') as file:
+                        geojson = json.load(file)
+
+                    print(f"Fichier chargé avec succès : {oldest_file}")
+                    return Response(geojson, status=status.HTTP_200_OK)
+
+                except Exception as e:
+                    return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             return Response(response_get.json(), status=status.HTTP_200_OK)
 
         except Exception as e:
-            print(f"Error when saving in database : {e}")
-            return Response({'error' : "Les informations n'ont pas été sauvegardé dans la database"}, status=status.HTTP_200_OK)
+            print(f"Error {e}")
+            return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
