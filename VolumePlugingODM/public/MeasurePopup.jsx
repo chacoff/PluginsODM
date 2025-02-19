@@ -15,7 +15,7 @@ export default class MeasurePopup extends React.Component {
     resultFeature: {},
     title: "volume object",
     baseMethod: "custom",
-    customValue: 0,
+    customValue: 0.0,
   };
 
   static propTypes = {
@@ -79,7 +79,7 @@ export default class MeasurePopup extends React.Component {
     }
 
     if (this.state.baseMethod == 'custom' && this.state.volume !== null && this.state.volume !== false) {
-      result.CustomValue = parseInt(this.state.customValue, 10);
+      result.CustomValue = parseFloat(this.state.customValue);
     }
 
     result.UnitSystem = this.lastUnitSystem;

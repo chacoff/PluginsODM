@@ -14,6 +14,7 @@ import { JamToast } from './jam-toast';
 import './jam-toast.css';
 import {v4 as uuidv4} from 'uuid';
 
+
 export default class App{
   constructor(map){
     const myToast = new JamToast({
@@ -64,7 +65,7 @@ export default class App{
       // polygon colors
       activeColor: 'yellow',
       completedColor: 'yellow',
-      customValue: 0,
+      customValue: 0.0,
       importStatus: false,
       uniqueIdPolygon: '',
 
@@ -236,16 +237,15 @@ export default class App{
 
       if (id != null) {
         const backendUrl = `/api/plugins/VolumePlugingODM/task/file/save/${id}`;
-        const externalApiUrl = `http://localhost:3000/add/scraps/geojson/${getName().split(" / ")[0].toLowerCase()}`;
+        // const externalApiUrl = `http://localhost:3000/add/scraps/geojson/${getName()${getName().split(" / ")[0].toLowerCase()}`;
 
         Promise.all([
           sendGeoJSON(backendUrl, geoJSON),
-          sendGeoJSON(externalApiUrl, geoJSON)
-        ]).then(([backendResponse, externalResponse]) => {
-          if (!backendResponse['error'] && !externalResponse['error']) {
-            myToast.showToast('Les infos ont été sauvegardées avec succès sur les deux serveurs', 'success');
+        ]).then(([backendResponse]) => {
+          if (!backendResponse['error']) {
+            myToast.showToast('Les infos ont été sauvegardées avec succès', 'success');
           } else {
-            myToast.showToast("Un problème est survenu pendant la sauvegarde", 'error');
+            myToast.showToast("Un problème est survenu pendant la sauvegarde", backendResponse['error']);
           }
         }).catch(error => {
           myToast.showToast("Erreur lors de la sauvegarde : " + error.message, 'error');
@@ -260,10 +260,7 @@ export default class App{
         type: 'POST',
         url: url,
         data: JSON.stringify(data),
-        contentType: "application/json",
-        headers: {
-          "Authorization": "xeXRK2RPc5dZLTPp2z2s4eAhfMH01bOaIZsqxbTzys12dL65e8KvKvszlalaoxOZaMhJyPGTECSSRc2j7VkZdGeJZm5Ypu02pdSoxbrxzY875vugEQ5x3aVeQu2UTAcIDwWdrgaWzuzE8u3RUz6igD"
-        }
+        contentType: "application/json"
       });
     }
 
@@ -277,12 +274,14 @@ export default class App{
       (async () => {
         await wait(4000);
         $.ajax({
-          type: 'GET',
-          url: `http://localhost:3000/get/scraps/geojson/${getName().split(" / ")[0].toLowerCase()}/${id}`,
+          type: 'POST',
+          // url: `http://localhost:3000/get/scraps/geojson/${getName().split(" / ")[0].toLowerCase()}/${id}`,
+          url: `/api/plugins/VolumePlugingODM/task/file/load/${id}`,
           contentType: "application/json",
-          headers: {
-            "Authorization": "xeXRK2RPc5dZLTPp2z2s4eAhfMH01bOaIZsqxbTzys12dL65e8KvKvszlalaoxOZaMhJyPGTECSSRc2j7VkZdGeJZm5Ypu02pdSoxbrxzY875vugEQ5x3aVeQu2UTAcIDwWdrgaWzuzE8u3RUz6igD"
-          }
+          data: JSON.stringify({
+            fsf: getName(),
+            TaskID: id
+          })
         }).done(result => {
           if (!result['error']) {
             if (importGeoJSONToMap(result) == 1) {
@@ -339,11 +338,11 @@ export default class App{
         if (measure.importStatus == false) {
           measure.activeColor = 'yellow';
           measure.completedColor = 'yellow';
-          measure.customValue = 0;
+          measure.customValue = 0.0;
           measure.uniqueIdPolygon = "";
           measure.baseMethod = "custom"
         }
-
+        model.title = measure.options.labels.areaMeasurement
         model.color = measure.activeColor
         if (measure.uniqueIdPolygon == "") {
           model.uniqueIdPolygon = uuidv4();
@@ -494,43 +493,44 @@ export default class App{
           const geometry = feature.geometry;
           const properties = feature.properties || {};
           let latlngs = []
-          if (geometry.type === "Polygon") {
-              latlngs = geometry.coordinates[0].map(coord => L.latLng(coord[1], coord[0]));
-          } else if (geometry.type === "LineString") {
-              latlngs = geometry.coordinates.map(coord => L.latLng(coord[1], coord[0]));
-          } else if (geometry.type === "Point") {
-              latlngs = L.latLng(geometry.coordinates[1], geometry.coordinates[0]);
-          } else {
-              console.log("Unsupported geometry type:", geometry.type);
-              return;
-          }
-          measure._startMeasure();
-          if (latlngs.length === 1 || !latlngs.length) {
-            measure._latlngs.push(latlngs);
-            const vertex = L.circleMarker(latlngs, measure._symbols.getSymbol('measureVertex'));
-            measure._measureVertexes.addLayer(vertex);
-          } else {
-            latlngs.forEach(latlng => {
-              measure._latlngs.push(latlng);
-              const vertex = L.circleMarker(latlng, measure._symbols.getSymbol('measureVertex'));
+          if (geometry.coordinates.length > 0) {
+            if (geometry.type === "Polygon") {
+                latlngs = geometry.coordinates[0].map(coord => L.latLng(coord[1], coord[0]));
+            } else if (geometry.type === "LineString") {
+                latlngs = geometry.coordinates.map(coord => L.latLng(coord[1], coord[0]));
+            } else if (geometry.type === "Point") {
+                latlngs = L.latLng(geometry.coordinates[1], geometry.coordinates[0]);
+            } else {
+                console.log("Unsupported geometry type:", geometry.type);   
+            }
+            measure._startMeasure();
+            if (latlngs.length === 1 || !latlngs.length) {
+              measure._latlngs.push(latlngs);
+              const vertex = L.circleMarker(latlngs, measure._symbols.getSymbol('measureVertex'));
               measure._measureVertexes.addLayer(vertex);
-            });
+            } else {
+              latlngs.forEach(latlng => {
+                measure._latlngs.push(latlng);
+                const vertex = L.circleMarker(latlng, measure._symbols.getSymbol('measureVertex'));
+                measure._measureVertexes.addLayer(vertex);
+              });
+            }
+            measure.options.labels.areaMeasurement = properties.Title;
+            measure.baseMethod = properties.BaseSurface;
+            measure.importStatus = true
+            if (properties.Color) {measure.activeColor = properties.Color;}
+            else if (!properties.Color) {measure.activeColor = 'yellow'}
+            if (properties.CustomValue) {measure.customValue = properties.CustomValue;}
+            else if (!properties.CustomValue) {measure.customValue = 0}
+            if (properties.UniqueIdPolygon) {measure.uniqueIdPolygon = properties.UniqueIdPolygon;}
+            else if (!properties.UniqueIdPolygon) {measure.uniqueIdPolygon = ''}
+            measure._updateMeasureStartedWithPoints();
+            measure._handleMeasureDoubleClick();
           }
-          measure.options.labels.areaMeasurement = properties.Title;
-          measure.baseMethod = properties.BaseSurface;
-          measure.importStatus = true
-          if (properties.Color) {measure.activeColor = properties.Color;}
-          else if (!properties.Color) {measure.activeColor = 'yellow'}
-          if (properties.CustomValue) {measure.customValue = properties.CustomValue;}
-          else if (!properties.CustomValue) {measure.customValue = 0}
-          if (properties.UniqueIdPolygon) {measure.uniqueIdPolygon = properties.UniqueIdPolygon;}
-          else if (!properties.UniqueIdPolygon) {measure.uniqueIdPolygon = ''}
-          measure._updateMeasureStartedWithPoints();
-          measure._handleMeasureDoubleClick();
       });
       measure.importStatus = false
       measure.activeColor = 'yellow';
-      measure.customValue = 0;
+      measure.customValue = 0.0;
       measure.uniqueIdPolygon = ''
     }
 

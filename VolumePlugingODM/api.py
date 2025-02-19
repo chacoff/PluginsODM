@@ -1,5 +1,7 @@
 import datetime
 import os
+
+import requests
 from rest_framework import serializers
 from rest_framework import status
 from rest_framework.response import Response
@@ -9,6 +11,14 @@ from app.plugins.views import TaskView
 from django.utils.translation import gettext_lazy as _
 from app.plugins.worker import run_function_async
 import json
+
+from .config import Config
+
+c: Config = Config()
+
+URL: str = c.get_url()
+TOKEN: str = c.get_token()
+HEADERS: dict = c.get_headers()
 
 from .volume import calc_volume
 
@@ -52,7 +62,8 @@ class SaveFile(TaskView):
     def post(self, request, pk=None, celery_task_id=None):
         data=request.data
         username = request.user.username
-
+        factoryname=data["fsf"].split(" / ")[0].lower()
+        file_saved = True
         try:
             cwd = os.getcwd()
             backup_dir = f'{cwd}/app/static/app/volumesfiles/{data["TaskID"]}/'
@@ -72,25 +83,54 @@ class SaveFile(TaskView):
             with open(file_path, 'w', encoding='utf-8') as file:
                 json.dump(data, file, indent=4)
             print(f"Fichier sauvegardé avec succès à : {file_path}")
-            return Response('File saved', status=status.HTTP_200_OK)
+
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_200_OK)
+            print(f"Error when saving file : {e}")
+            file_saved=False
+
+        try:
+            url = f'{URL}/add/scraps/geojson/{factoryname}'
+            response_post = requests.post(url, headers=HEADERS, json=data)
+            if file_saved == False:
+                return Response({'error' : "Les informations ont été sauvegardé uniquement dans la databse"}, status=status.HTTP_200_OK)
+            else:
+                return Response({'geoJson' : response_post.json()}, status=status.HTTP_200_OK)
+
+        except Exception as e:
+            print(f"Error when saving in database : {e}")
+            if file_saved == False:
+                return Response({'error' : "Les informations n'ont pas été sauvegardé"}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error' : "Les informations n'ont pas été sauvegardé dans la database"}, status=status.HTTP_200_OK)
 
 class LoadFile(TaskView):
     def post(self, request, pk=None, celery_task_id=None):
         data=request.data
+        factoryname=data["fsf"].split(" / ")[0].lower()
+        id=data["TaskID"]
+
+        # try:
+        #     cwd = os.getcwd()
+        #     file_path = f'{cwd}/coreplugins/VolumePlugingODM/volumesfiles/{data["name"]}.geojson'
+        #     directory = os.path.dirname(file_path)
+        #     if not os.path.exists(directory):
+        #         return
+        #     with open(file_path, 'r', encoding='utf-8') as file:
+        #         geojson = json.load(file)
+        #     print(f"Fichier load avec succès à : {file_path}")
+        #     return Response({'geoJSON' : geojson}, status=status.HTTP_200_OK)
+        # except json.JSONDecodeError as e:
+        #     return Response({'error': f"Erreur de décodage JSON : {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+        # except Exception as e:
+        #     return Response({'error': str(e)}, status=status.HTTP_200_OK)
 
         try:
-            cwd = os.getcwd()
-            file_path = f'{cwd}/coreplugins/VolumePlugingODM/volumesfiles/{data["name"]}.geojson'
-            directory = os.path.dirname(file_path)
-            if not os.path.exists(directory):
-                return
-            with open(file_path, 'r', encoding='utf-8') as file:
-                geojson = json.load(file)
-            print(f"Fichier load avec succès à : {file_path}")
-            return Response({'geoJSON' : geojson}, status=status.HTTP_200_OK)
-        except json.JSONDecodeError as e:
-            return Response({'error': f"Erreur de décodage JSON : {str(e)}"}, status=status.HTTP_400_BAD_REQUEST)
+            url = f'{URL}/get/scraps/geojson/{factoryname}/{id}'
+            response_get = requests.get(url, headers=HEADERS)
+            if response_get.status_code == 200:
+                data_get = response_get.json()
+            return Response(response_get.json(), status=status.HTTP_200_OK)
+
         except Exception as e:
-            return Response({'error': str(e)}, status=status.HTTP_200_OK)
+            print(f"Error when saving in database : {e}")
+            return Response({'error' : "Les informations n'ont pas été sauvegardé dans la database"}, status=status.HTTP_200_OK)
