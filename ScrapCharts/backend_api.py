@@ -169,6 +169,6 @@ def update_db_via_dev(_factory: str, _data: Response) -> Response:
 
     print(_data)
 
-    response = requests.post(url, headers=HEADERS, json=_data, timeout=10)
+    response = requests.post(url, headers=HEADERS, json=_data)  # timeout=10
 
     return response.json()

@@ -190,7 +190,7 @@
                 volume_trench: parseFloat(cells[6].value.trim()) || null,
                 volume_total: parseFloat(cells[7].value.trim()) || null,
                 unique_id_polygon: cells[8].value.trim(),
-                updated_at: cells[9].value.trim()
+                // updated_at: cells[9].value.trim()
             };
             data.push(rowData);
         });
@@ -266,7 +266,7 @@
             { name: 'volume_trench', type: 'number' },
             { name: 'volume_total', type: 'number', readonly: true },
             { name: 'UniqueIdPolygon', type: 'text', readonly: true },
-            { name: 'updated_at', type: 'datetime-local' }
+            { name: 'updated_at', type: 'datetime-local', readonly: true }
         ];
 
         const values = typeof rowData === 'string' ? rowData.split(',') : (Array.isArray(rowData) ? rowData : []);
