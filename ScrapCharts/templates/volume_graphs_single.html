@@ -249,99 +249,85 @@
 
     }
 	
-		function exportToXLSX() {
+    function exportToXLSX() {
 
-    let fileName = _factory + '_' + _sector + '_' + _flight_date;
-    let fileNameFormatted = transformString(fileName);
-    const formattedDate = formatDateTime(_rawDate);
+        let _day = _rawDate.split('T')[0]
+        let fileName = _factory + '_' + _sector + '_' + _flight_date;
+        let sheetName = _sector+'_'+_day
+        let fileNameFormatted = transformString(fileName);
+        const formattedDate = formatDateTime(_rawDate);
 
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Données");
+        const workbook = new ExcelJS.Workbook();
+        const worksheet = workbook.addWorksheet(sheetName);
 
-    // Ajouter le titre
+        worksheet.addRow([]);
+        worksheet.addRow([`${_factory} - ${_sector} - ${formattedDate}`]);
+        worksheet.addRow([]); // Ligne vide
 
-    worksheet.addRow([`${_factory} - ${_sector} - ${formattedDate}`]);
-    worksheet.addRow([]); // Ligne vide
+        worksheet.addRow(['Pile', 'ODM', 'Pix4d', 'Delta', 'Trench', 'Total']);
 
-    // Ajouter les en-têtes
+        _dataMap.forEach(row => {
 
-    worksheet.addRow(['Pile', 'ODM', 'Pix4d', 'Delta', 'Trench', 'Total']);
+            const processedRow = row.map(cell => {
+            if (typeof cell === 'string' && !isNaN(cell) && cell.trim() !== '') {
+                return Number(cell);
+            }
+                return cell;
+            });
 
-    // Ajouter les données
-
-    _dataMap.forEach(row => {
-        worksheet.addRow(row);
-
-    });
-
-    // Charger l’image
-
-    let img = new Image();
-    img.src = "homer.jpg"; // Chemin de l’image
-    img.crossOrigin = "anonymous";
-
-
-
-    img.onload = function () {
-
-        let canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
-        let ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0);
-        canvas.toBlob(function (blob) {
-
-            let reader = new FileReader();
-
-            reader.readAsArrayBuffer(blob);
-
-            reader.onload = function () {
-
-                let imageId = workbook.addImage({
-
-                    buffer: reader.result,
-                    extension: 'jpeg',
-
-                });
-
-
-
-                // Calculer la position de la dernière data et insérer l'image (ex: Cellule B10)
-
-                let lastDataRow = _dataMap.length + 4;
-                let imageStartRow = lastDataRow + 2;
-
-
-                worksheet.addImage(imageId, {
-
-                    tl: { col: 1, row: imageStartRow }, // Position de l’image (colonne B, ligne en dessous des données)
-                    br: { col: 8, row: imageStartRow + 8} // Taille de l’image
-
-                });
-
-
-
-                // Générer le fichier et le télécharger
-
-                workbook.xlsx.writeBuffer().then(function (buffer) {
-
-                    let blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-                    let link = document.createElement("a");
-                    link.href = URL.createObjectURL(blob);
-                    link.download = fileNameFormatted + ".xlsx";
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-
-                });
-
-            };
-
+            worksheet.addRow(processedRow);
         });
 
-    };
+        let img = new Image();
+        img.src = image_url; // Chemin de l’image
+        img.crossOrigin = "anonymous";
 
-}
+        img.onload = function () {
+
+            let canvas = document.createElement("canvas");
+            canvas.width = img.width;
+            canvas.height = img.height;
+            let ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0);
+            canvas.toBlob(function (blob) {
+
+                let reader = new FileReader();
+                reader.readAsArrayBuffer(blob);
+                reader.onload = function () {
+
+                    let imageId = workbook.addImage({
+                        buffer: reader.result,
+                        extension: 'jpeg',
+                    });
+
+                    // Calculer la position de la dernière data et insérer l'image (ex: Cellule B10)
+                    let lastDataRow = _dataMap.length + 4;
+                    let imageStartRow = lastDataRow + 2;
+
+                    worksheet.addImage(imageId, {
+
+                        tl: { col: 1, row: imageStartRow }, // Position de l’image (colonne B, ligne en dessous des données)
+                        br: { col: 8, row: imageStartRow + 8} // Taille de l’image
+
+                    });
+
+                    // Générer le fichier et le télécharger
+
+                    workbook.xlsx.writeBuffer().then(function (buffer) {
+
+                        let blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                        let link = document.createElement("a");
+                        link.href = URL.createObjectURL(blob);
+                        link.download = fileNameFormatted + ".xlsx";
+                        document.body.appendChild(link);
+                        link.click();
+                        document.body.removeChild(link);
+
+                    });
+                };
+            });
+        };
+    }
 
 </script>
 {% endblock %}
