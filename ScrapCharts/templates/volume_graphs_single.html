@@ -8,6 +8,7 @@
 <script type="text/javascript" src="./venobox.min.js"></script>
 <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
 <script type="text/javascript" src="./xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 
 <div style="display: flex; align-items: center; gap: 20px;">
     <div>
@@ -248,56 +249,99 @@
 
     }
 	
-	function exportToXLSX() {
-		let fileName = _factory + '_' + _sector + '_' + _flight_date;
-		let fileNameFormatted = transformString(fileName);
-		const formattedDate = formatDateTime(_rawDate);
-		
-		// Create the header row with title and date
-		const titleRow = [`${_factory} - ${_sector} - ${formattedDate}`];
-		const emptyRow = [''];
-		const headerRow = ['Pile', 'ODM', 'Pix4d', 'Delta', 'Trench', 'Total'];
-		
-		// Combine all rows
-		const data = [
-			titleRow,
-			emptyRow,
-			headerRow,
-			..._dataMap
-		];
+		function exportToXLSX() {
 
-		// Create a new workbook
-		const wb = XLSX.utils.book_new();
-		
-		// Convert your data to a worksheet
-		const ws = XLSX.utils.aoa_to_sheet(data);
-		
-		// Add the worksheet to the workbook
-		XLSX.utils.book_append_sheet(wb, ws, "Sheet1");
-		
-		// Generate XLSX file and trigger download
-		XLSX.writeFile(wb, fileNameFormatted + '.xlsx');
-	}
+    let fileName = _factory + '_' + _sector + '_' + _flight_date;
+    let fileNameFormatted = transformString(fileName);
+    const formattedDate = formatDateTime(_rawDate);
 
-    function openDevMode() {
-        fetch(`/plugins/ScrapCharts/dev_mode/?task_id=${_task_id}&factory=${_factory}&flightdate=${_rawDate}&sector=${_sector}`, {
-            method: 'GET',
-        })
-            .then(response => {
-                if (response.ok) {
-                    return response.text();
-                }
-                throw new Error('Network response was not ok');
-            })
-            .then(html => {
-                document.open();
-                document.write(html);
-                document.close();
-            })
-            .catch(error => {
-                console.error('Error fetching new page:', error);
-            });
-    }
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet("Données");
+
+    // Ajouter le titre
+
+    worksheet.addRow([`${_factory} - ${_sector} - ${formattedDate}`]);
+    worksheet.addRow([]); // Ligne vide
+
+    // Ajouter les en-têtes
+
+    worksheet.addRow(['Pile', 'ODM', 'Pix4d', 'Delta', 'Trench', 'Total']);
+
+    // Ajouter les données
+
+    _dataMap.forEach(row => {
+        worksheet.addRow(row);
+
+    });
+
+    // Charger l’image
+
+    let img = new Image();
+    img.src = "homer.jpg"; // Chemin de l’image
+    img.crossOrigin = "anonymous";
+
+
+
+    img.onload = function () {
+
+        let canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        let ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob(function (blob) {
+
+            let reader = new FileReader();
+
+            reader.readAsArrayBuffer(blob);
+
+            reader.onload = function () {
+
+                let imageId = workbook.addImage({
+
+                    buffer: reader.result,
+                    extension: 'jpeg',
+
+                });
+
+
+
+                // Calculer la position de la dernière data et insérer l'image (ex: Cellule B10)
+
+                let lastDataRow = _dataMap.length + 4;
+                let imageStartRow = lastDataRow + 2;
+
+
+                worksheet.addImage(imageId, {
+
+                    tl: { col: 1, row: imageStartRow }, // Position de l’image (colonne B, ligne en dessous des données)
+                    br: { col: 8, row: imageStartRow + 8} // Taille de l’image
+
+                });
+
+
+
+                // Générer le fichier et le télécharger
+
+                workbook.xlsx.writeBuffer().then(function (buffer) {
+
+                    let blob = new Blob([buffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
+                    let link = document.createElement("a");
+                    link.href = URL.createObjectURL(blob);
+                    link.download = fileNameFormatted + ".xlsx";
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+
+                });
+
+            };
+
+        });
+
+    };
+
+}
 
 </script>
 {% endblock %}
