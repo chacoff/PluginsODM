@@ -16,12 +16,16 @@ HEADERS: dict = c.get_headers()
 
 
 def factory_format(_factory) -> str:
+    """ gets the factory name according the name yield in Factory Access"""
 
     if _factory == 'Belval':
         return 'blv'
 
     if _factory == 'Differdange':
         return 'diff'
+
+    if _factory == 'Ferro':
+        return 'ferro'
 
     return ''
 

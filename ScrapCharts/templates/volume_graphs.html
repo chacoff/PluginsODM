@@ -71,10 +71,15 @@
             console.log('Last Factory:', lastFactory);
             if (lastFactory === 'BLV') {
                 selectedFactory = 'Belval';
+
             } else if (lastFactory === 'DIFF') {
                 selectedFactory = 'Differdange';
-            } else {
-                selectedFactory = 'Belval' // Default!
+
+            } else if (lastFactory === 'Ferro') {
+                selectedFactory = 'Ferro'
+
+            } else{
+                selectedFactory = 'Belval'  // Default!
             }
 
             document.getElementById('factoryDropdown').value = selectedFactory;

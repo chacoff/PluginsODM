@@ -10,7 +10,7 @@ def get_factory_access(groups: list[bool]) -> list[str]:
         factory_access = ['Differdange', 'Belval']
 
     if groups[2] or groups[3]:  # isGlobal or isDev
-        factory_access = ['Belval', 'Differdange']
+        factory_access = ['Belval', 'Differdange', 'Ferro']
 
     return factory_access
 
