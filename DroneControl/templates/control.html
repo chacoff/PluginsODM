@@ -1,0 +1,98 @@
+{% extends "app/plugins/templates/base.html" %}
+{% load i18n %}
+
+{% block content %}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/gridjs/6.0.6/theme/mermaid.min.css" rel="stylesheet" />
+<script src="./Chart.min.js"></script>
+
+<h2>{% trans 'Drone Control' %}</h2>
+<br />
+
+<div style="display: flex; align-items: center; gap: 20px;">
+    <div class="theme-background-highlight" style="padding: 8px 16px; margin-right: 10px; border-radius: 4px; letter-spacing: 0.5px;">station drone:</div>
+    <div>
+        <button class="btn btn-primary" onclick="window.open('{{ target_url }}', '_blank')">
+            <i class="fas fa-cloud"></i> {% trans "Drone Storage" %}
+        </button>
+    </div>
+
+</div>
+
+<hr/>
+
+<div id="flightTable"></div>
+
+<style>
+    .status-done {
+        color: white;
+        background-color: green;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+
+    .status-engage {
+        color: white;
+        background-color: red;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: bold;
+    }
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gridjs/6.0.6/gridjs.umd.js"></script>
+<script>
+
+    // grid.JS with next flights
+    new gridjs.Grid({
+        columns: [
+            {
+                name: 'Secteur',
+                sort: true
+            },
+            {
+                name: 'Jour de vol',
+                sort: true,
+                formatter: (cell) => {
+                    return new Date(cell).toLocaleDateString();
+                }
+            },
+            {
+                name: 'Demandeur',
+                sort: true
+            },
+            {
+                name: 'Pilote',
+                sort: true
+            },
+            {
+                name: 'Status',
+                sort: true
+            },
+            {
+                name: 'Drone',
+                sort: true
+            }
+        ],
+        server: {
+            url: '/plugins/DroneControl/get_schedules',
+            then: data => data.map(schedule => {
+                // console.log(schedule.done);
+                const statusLabel = schedule.done
+                    ? `<span class="status-done">done</span>`
+                    : `<span class="status-engage">engage</span>`;
+
+                return [`${schedule.factory} - ${schedule.sector}`, schedule.flightday, schedule.requester, schedule.pilot, gridjs.html(statusLabel), schedule.drone];
+            })
+        },
+        search: false,
+        pagination: {
+            limit: 20
+        },
+        sort: true,
+    }).render(document.getElementById("flightTable"));
+
+</script>
+
+{% endblock %}

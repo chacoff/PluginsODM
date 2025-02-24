@@ -1,0 +1,17 @@
+{
+  "name": "DroneControl",
+  "webodmMinVersion": "0.1.0",
+  "description": "A plugin to control flight schedule",
+  "version": "0.0.1",
+  "author": "Jaime Chacoff",
+  "email": "jaime.gomez@usach.cl",
+  "repository": "",
+  "tags": [
+    "plugin",
+    "charts",
+    "volume"
+  ],
+  "homepage": "",
+  "experimental": false,
+  "deprecated": false
+}
